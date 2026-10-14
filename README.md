@@ -1,4 +1,4 @@
-# RePlan - Adaptive Semester Planner 🎓
+# RePlan 🎓
 ### Your semester, planned smarter.
 
 **RePlan** is a proposed adaptive study-planning application that transforms semester dates, course outlines, credit hours, and personal availability into manageable **daily study milestones**. When a student misses a session, RePlan aims to rebuild the remaining schedule instead of leaving them with an outdated to-do list.
@@ -89,3 +89,7 @@ RePlan is not just another checklist. Its central challenge is **constraint-awar
 ## Contributing
 
 Ideas, bug reports, and contributions are welcome as the prototype develops. Open an issue to discuss a proposed improvement.
+
+## License
+
+No license has been selected yet. Add a `LICENSE` file before describing the project as open source.
