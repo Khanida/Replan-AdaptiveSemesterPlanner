@@ -1,0 +1,110 @@
+Day,Date,Weekday,Target Hours,Topic Day,Topic,Status
+1,2026-10-16,Friday,1.24,1/22,Introduction & Syntax,Missed
+2,2026-10-17,Saturday,1.24,2/22,Introduction & Syntax,Completed
+3,2026-10-18,Sunday,1.25,3/22,Introduction & Syntax,Pending
+4,2026-10-19,Monday,1.25,4/22,Introduction & Syntax,Pending
+5,2026-10-20,Tuesday,1.25,5/22,Introduction & Syntax,Pending
+6,2026-10-21,Wednesday,1.25,6/22,Introduction & Syntax,Pending
+7,2026-10-22,Thursday,1.25,7/22,Introduction & Syntax,Pending
+8,2026-10-23,Friday,1.25,8/22,Introduction & Syntax,Pending
+9,2026-10-24,Saturday,1.25,9/22,Introduction & Syntax,Pending
+10,2026-10-25,Sunday,1.25,10/22,Introduction & Syntax,Pending
+11,2026-10-26,Monday,1.25,11/22,Introduction & Syntax,Pending
+12,2026-10-27,Tuesday,1.25,12/22,Introduction & Syntax,Pending
+13,2026-10-28,Wednesday,1.25,13/22,Introduction & Syntax,Pending
+14,2026-10-29,Thursday,1.25,14/22,Introduction & Syntax,Pending
+15,2026-10-30,Friday,1.25,15/22,Introduction & Syntax,Pending
+16,2026-10-31,Saturday,1.25,16/22,Introduction & Syntax,Pending
+17,2026-11-01,Sunday,1.25,17/22,Introduction & Syntax,Pending
+18,2026-11-02,Monday,1.25,18/22,Introduction & Syntax,Pending
+19,2026-11-03,Tuesday,1.25,19/22,Introduction & Syntax,Pending
+20,2026-11-04,Wednesday,1.25,20/22,Introduction & Syntax,Pending
+21,2026-11-05,Thursday,1.25,21/22,Introduction & Syntax,Pending
+22,2026-11-06,Friday,1.25,22/22,Introduction & Syntax,Pending
+23,2026-11-07,Saturday,1.25,1/22,Data Structures,Pending
+24,2026-11-08,Sunday,1.25,2/22,Data Structures,Pending
+25,2026-11-09,Monday,1.25,3/22,Data Structures,Pending
+26,2026-11-10,Tuesday,1.25,4/22,Data Structures,Pending
+27,2026-11-11,Wednesday,1.25,5/22,Data Structures,Pending
+28,2026-11-12,Thursday,1.25,6/22,Data Structures,Pending
+29,2026-11-13,Friday,1.25,7/22,Data Structures,Pending
+30,2026-11-14,Saturday,1.25,8/22,Data Structures,Pending
+31,2026-11-15,Sunday,1.25,9/22,Data Structures,Pending
+32,2026-11-16,Monday,1.25,10/22,Data Structures,Pending
+33,2026-11-17,Tuesday,1.25,11/22,Data Structures,Pending
+34,2026-11-18,Wednesday,1.25,12/22,Data Structures,Pending
+35,2026-11-19,Thursday,1.25,13/22,Data Structures,Pending
+36,2026-11-20,Friday,1.25,14/22,Data Structures,Pending
+37,2026-11-21,Saturday,1.25,15/22,Data Structures,Pending
+38,2026-11-22,Sunday,1.25,16/22,Data Structures,Pending
+39,2026-11-23,Monday,1.25,17/22,Data Structures,Pending
+40,2026-11-24,Tuesday,1.25,18/22,Data Structures,Pending
+41,2026-11-25,Wednesday,1.25,19/22,Data Structures,Pending
+42,2026-11-26,Thursday,1.25,20/22,Data Structures,Pending
+43,2026-11-27,Friday,1.25,21/22,Data Structures,Pending
+44,2026-11-28,Saturday,1.25,22/22,Data Structures,Pending
+45,2026-11-29,Sunday,1.25,1/22,OOP,Pending
+46,2026-11-30,Monday,1.25,2/22,OOP,Pending
+47,2026-12-01,Tuesday,1.25,3/22,OOP,Pending
+48,2026-12-02,Wednesday,1.25,4/22,OOP,Pending
+49,2026-12-03,Thursday,1.25,5/22,OOP,Pending
+50,2026-12-04,Friday,1.25,6/22,OOP,Pending
+51,2026-12-05,Saturday,1.25,7/22,OOP,Pending
+52,2026-12-06,Sunday,1.25,8/22,OOP,Pending
+53,2026-12-07,Monday,1.25,9/22,OOP,Pending
+54,2026-12-08,Tuesday,1.25,10/22,OOP,Pending
+55,2026-12-09,Wednesday,1.25,11/22,OOP,Pending
+56,2026-12-10,Thursday,1.25,12/22,OOP,Pending
+57,2026-12-11,Friday,1.25,13/22,OOP,Pending
+58,2026-12-12,Saturday,1.25,14/22,OOP,Pending
+59,2026-12-13,Sunday,1.25,15/22,OOP,Pending
+60,2026-12-14,Monday,1.25,16/22,OOP,Pending
+61,2026-12-15,Tuesday,1.25,17/22,OOP,Pending
+62,2026-12-16,Wednesday,1.25,18/22,OOP,Pending
+63,2026-12-17,Thursday,1.25,19/22,OOP,Pending
+64,2026-12-18,Friday,1.25,20/22,OOP,Pending
+65,2026-12-19,Saturday,1.25,21/22,OOP,Pending
+66,2026-12-20,Sunday,1.25,22/22,OOP,Pending
+67,2026-12-21,Monday,1.25,1/22,File Handling,Pending
+68,2026-12-22,Tuesday,1.25,2/22,File Handling,Pending
+69,2026-12-23,Wednesday,1.25,3/22,File Handling,Pending
+70,2026-12-24,Thursday,1.25,4/22,File Handling,Pending
+71,2026-12-25,Friday,1.25,5/22,File Handling,Pending
+72,2026-12-26,Saturday,1.25,6/22,File Handling,Pending
+73,2026-12-27,Sunday,1.25,7/22,File Handling,Pending
+74,2026-12-28,Monday,1.25,8/22,File Handling,Pending
+75,2026-12-29,Tuesday,1.25,9/22,File Handling,Pending
+76,2026-12-30,Wednesday,1.25,10/22,File Handling,Pending
+77,2026-12-31,Thursday,1.25,11/22,File Handling,Pending
+78,2027-01-01,Friday,1.25,12/22,File Handling,Pending
+79,2027-01-02,Saturday,1.25,13/22,File Handling,Pending
+80,2027-01-03,Sunday,1.25,14/22,File Handling,Pending
+81,2027-01-04,Monday,1.25,15/22,File Handling,Pending
+82,2027-01-05,Tuesday,1.25,16/22,File Handling,Pending
+83,2027-01-06,Wednesday,1.25,17/22,File Handling,Pending
+84,2027-01-07,Thursday,1.25,18/22,File Handling,Pending
+85,2027-01-08,Friday,1.25,19/22,File Handling,Pending
+86,2027-01-09,Saturday,1.25,20/22,File Handling,Pending
+87,2027-01-10,Sunday,1.25,21/22,File Handling,Pending
+88,2027-01-11,Monday,1.25,22/22,File Handling,Pending
+89,2027-01-12,Tuesday,1.25,1/21,Project & Revision,Pending
+90,2027-01-13,Wednesday,1.25,2/21,Project & Revision,Pending
+91,2027-01-14,Thursday,1.25,3/21,Project & Revision,Pending
+92,2027-01-15,Friday,1.25,4/21,Project & Revision,Pending
+93,2027-01-16,Saturday,1.25,5/21,Project & Revision,Pending
+94,2027-01-17,Sunday,1.25,6/21,Project & Revision,Pending
+95,2027-01-18,Monday,1.25,7/21,Project & Revision,Pending
+96,2027-01-19,Tuesday,1.25,8/21,Project & Revision,Pending
+97,2027-01-20,Wednesday,1.25,9/21,Project & Revision,Pending
+98,2027-01-21,Thursday,1.25,10/21,Project & Revision,Pending
+99,2027-01-22,Friday,1.25,11/21,Project & Revision,Pending
+100,2027-01-23,Saturday,1.25,12/21,Project & Revision,Pending
+101,2027-01-24,Sunday,1.25,13/21,Project & Revision,Pending
+102,2027-01-25,Monday,1.25,14/21,Project & Revision,Pending
+103,2027-01-26,Tuesday,1.25,15/21,Project & Revision,Pending
+104,2027-01-27,Wednesday,1.25,16/21,Project & Revision,Pending
+105,2027-01-28,Thursday,1.25,17/21,Project & Revision,Pending
+106,2027-01-29,Friday,1.25,18/21,Project & Revision,Pending
+107,2027-01-30,Saturday,1.25,19/21,Project & Revision,Pending
+108,2027-01-31,Sunday,1.25,20/21,Project & Revision,Pending
+109,2027-02-01,Monday,1.25,21/21,Project & Revision,Pending
