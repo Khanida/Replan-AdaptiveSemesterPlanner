@@ -58,17 +58,34 @@ The scheduling engine should:
 4. Preserve completed work and redistribute missed milestones.
 5. Report any workload that cannot be scheduled within the available time.
 
+## Running the Applications
+
+### RePlan v1.1 (Cozy & Friendly Multi-Course Planner) 🌸🎓
+A cute, delightful, and encouraging study companion with a cozy pastel theme, motivational quotes, course icons, and gentle adaptive rescheduling:
+```bash
+python3 replanv1_1.py
+```
+Key features in v1.1:
+- **Cozy & Friendly Interface:** Warm pastel palette, cheering study quotes, and stress-free academic vibes.
+- **Multiple Courses with Cute Badges & Icons:** Customize course themes with icons (💻, 📐, 🌐, 🔬, 📖, 🎨, 🧠).
+- **Today's Cozy Study Cups:** Friendly check-in card with one-click *"✨ Yay! Finished All Today's Study! 🎉"* celebration and restful rescheduling.
+- **Gentle Adaptive Rescheduling:** If you miss a session, RePlan gently reorganizes your milestones before each exam deadline and highlights them in **dreamy lavender**.
+- **Daily Harmony & Workload Pace:** Tracks daily study cup hours and flags busy days with caring reminders to take breaks.
+- **Supportive Insights & Cheerleader:** Encouraging semester diagnostic with actionable tips and safety buffer analysis.
+
+### RePlan v1 (Multi-Course Semester Planner) 🚀
+Multi-course engine with individual outlines, credit hours, and distinct exam dates:
+```bash
+python3 replanv1.py
+```
+
+### RePlan v0 (Single-Course Prototype)
+Original single-course prototype:
+```bash
+python3 replanv0.py
+```
+
 ## Suggested Tech Stack
-
-| Layer | Suggested technology |
-| --- | --- |
-| Core scheduling logic | Python |
-| Prototype interface | Streamlit or Tkinter |
-| Local persistence | SQLite |
-| Testing | pytest |
-| Optional later web API | FastAPI |
-
-*The final stack should be updated to match the actual implementation.*
 
 ## Development Roadmap
 
