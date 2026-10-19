@@ -60,6 +60,35 @@ The scheduling engine should:
 
 ## Running the Applications
 
+### RePlan Roast Desktop
+
+Run the standard-library desktop app (Python with Tkinter):
+
+```bash
+python3 replan_desktop.py
+```
+
+Start with **Load demo**, or add courses and topics, set your daily study hours, then apply your semester settings.
+
+- Sarcastic, progress-aware study coaching with Off, Mild, Medium, and Extra spicy settings. Feedback is generated locally; no AI service or account is required.
+- A charcoal and orange interface with completion, remaining workload, today's work, and next-exam metrics.
+- Complete individual sessions directly from the dashboard or finish the whole day.
+- Search the schedule by course or topic and filter by Today, Pending, or Done.
+- Inspect daily workload and remaining capacity in the Daily workload tab.
+- Export the complete schedule as CSV, or pending sessions as all-day `.ics` events for manual calendar import. This does not connect to or sync a calendar account.
+- Save and reopen JSON plans, including roast intensity. Unsaved changes prompt before closing or replacing a plan. Use Ctrl+S / Ctrl+O or Command+S / Command+O on Mac.
+- Unfinished sessions are rebuilt from the plan date while preserving completed work and reporting infeasible deadlines.
+
+Run the desktop regression checks with `python3 -m unittest test_replan_desktop -v`.
+
+### RePlan v1.2 — Roast Edition 🔥
+
+```bash
+python3 replanv1_2.py
+```
+
+The multi-course planner with a charcoal/orange theme, sarcastic accountability banner, and blunt study check-ins. Roasts react to overdue sessions, overloaded days, rescheduling, today's work, and completion. Choose **Off**, **Mild**, **Medium**, or **Extra spicy**, or click **Roast me again** for another line. Feedback runs locally without an AI service. Existing CSV and optional Google Calendar features are retained. Requires pandas and Python with Tkinter.
+
 ### RePlan v1.1 (Cozy & Friendly Multi-Course Planner) 🌸🎓
 A cute, delightful, and encouraging study companion with a cozy pastel theme, motivational quotes, course icons, and gentle adaptive rescheduling:
 ```bash
