@@ -81,6 +81,50 @@ Start with **Load demo**, or add courses and topics, set your daily study hours,
 
 Run the desktop regression checks with `python3 -m unittest test_replan_desktop -v`.
 
+### Replan desktop 2.1
+
+`replanv2_1.py` opens the current v2 planner in a native desktop window with all four intensity themes, the journal logo, adaptive scheduling, and printable PDF checklists. It shares the browser edition’s source files, so interface changes apply to both versions.
+
+```bash
+python3 -m pip install -r requirements-desktop.txt
+python3 replanv2_1.py
+```
+
+If using this repository’s virtual environment, run `.venv/bin/python replanv2_1.py`.
+
+- Keep the five `replanv2` web assets beside the launcher.
+- Exports use a native **Save As** dialog; cancelling does not write a file or report a successful save.
+- Desktop autosave uses a separate profile in `.replanv2-desktop/` (ignored by git). It does not automatically import browser storage; transfer an existing plan with **JSON backup** and **Open plan**.
+- The internal server uses localhost port `17863` to retain a stable storage origin. `--port` can choose another port; that origin has separate browser storage.
+- Calendar `.ics` export works without account setup. Google OAuth inside an embedded webview may be restricted by Google; use the browser edition for direct sign-in.
+- macOS uses the native WebKit renderer. Windows needs WebView2; Linux needs a supported GTK or Qt webview backend. See [pywebview’s platform documentation](https://pywebview.flowrl.com/guide/installation.html).
+
+Check native export behavior with `python3 -m unittest test_replanv2_1 -v`.
+
+### Replan - Adaptive Semester Planner (browser edition)
+
+Open `replanv2.html` in a browser. Keep `replanv2.css`, `replanv2-engine.js`, `replanv2-pdf.js`, and `replanv2.js` beside it. The core planner runs locally without a build step or third-party JavaScript libraries.
+
+The browser edition includes the v1.2 multi-course workflow: course add/edit/remove with badge themes, outlines and exam-date presets; configurable credit-hour workload estimates; daily milestones; individual and batch completion/missed/pending controls; adaptive replanning; automatic overdue catch-up; roadmap search, filters, sorting and jump-to-today; course progress and topic timelines; daily workload and feasibility alerts; insights and replan history; adjustable roast intensity; JSON backups; desktop-compatible CSV and companion metadata; calendar export; and print/save-to-PDF.
+
+- **Start:** click **Try the 3-course demo**, or add courses and generate a roadmap.
+- **Save / print:** **Save plan (PDF)** downloads an A4 weekly schedule with a large checkbox beside every session, notes space, and page numbers. Completed sessions are ticked; missed history is excluded because that work is recovered in the updated roadmap. The PDF uses white pages and dark text for printing and hanging on a wall. It includes the whole active roadmap, regardless of search filters.
+- **Persistence:** plans autosave in browser storage when available. **JSON backup** in Study roadmap downloads a complete backup with settings and progress. Ctrl/Command+S downloads the PDF checklist.
+- **Desktop CSV:** select a `.csv` and its matching `.csv.meta.json` together in **Open plan**. Without metadata, course credits and exam dates are inferred and should be reviewed. Export **CSV** and **CSV metadata** together to preserve course details for the Python app.
+- **Workload:** credits × study hours per credit estimates total work. Required hours spread across days strictly before each exam; the daily limit diagnoses overload. Missed rows stay as history, while recovered work counts once. Completed work and all remaining topics are preserved during replanning. Expired deadlines show unscheduled hours.
+- **Calendar:** select courses, upcoming/all/selected sessions, all-day or timed events, a start time, and reminders. `.ics` export works without Google sign-in. Timed sessions run consecutively per day.
+- **Google sync:** enable the Calendar API and supply a Google OAuth **web** client ID in the calendar dialog. Authorize the page’s HTTP(S) origin in that client’s settings. The public client ID is saved locally; access tokens stay in memory. Sync creates or uses a named study calendar and updates matching sessions on repeated sync. It does not delete earlier events when a roadmap changes. Live Google authorization requires your configured client and is not part of the automated checks. See [Google’s token-model guide](https://developers.google.com/identity/oauth2/web/guides/use-token-model) and [Calendar events API](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert).
+
+For localhost preview and Google authorization, run:
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+Then open `http://127.0.0.1:8765/replanv2.html`. Register `http://127.0.0.1:8765` as your Google web client’s JavaScript origin.
+
+Run browser-engine checks with `node --test test-no-replan.cjs test-no-replan-pdf.cjs`.
+
 ### RePlan v1.2 — Roast Edition 🔥
 
 ```bash

@@ -5,3 +5,6 @@ __pycache__/
 venv/
 .env
 .DS_Store
+
+# Replan desktop autosave / browser profile
+.replanv2-desktop/

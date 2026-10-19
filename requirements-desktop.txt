@@ -1,0 +1,2 @@
+# Native desktop window; the planner itself has no pandas or Google SDK dependency.
+pywebview>=5.4,<7
