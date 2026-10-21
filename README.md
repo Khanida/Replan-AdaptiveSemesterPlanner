@@ -81,6 +81,10 @@ Start with **Load demo**, or add courses and topics, set your daily study hours,
 
 Run the desktop regression checks with `python3 -m unittest test_replan_desktop -v`.
 
+### Replan 2.2 — Flutter
+
+The native Flutter source is in [`rplanv2_2`](rplanv2_2/README.md), with the main interface in `rplanv2_2/lib/rplanv2_2.dart`. It includes courses, capacity-aware daily milestones, completion tracking, replanning, roadmap filters, and local saving. See its README to generate platform runners and run the app with Flutter.
+
 ### Replan desktop 2.1
 
 `replanv2_1.py` opens the current v2 planner in a native desktop window with all four intensity themes, the journal logo, adaptive scheduling, and printable PDF checklists. It shares the browser edition’s source files, so interface changes apply to both versions.
