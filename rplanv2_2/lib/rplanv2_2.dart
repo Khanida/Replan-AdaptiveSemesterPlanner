@@ -8,7 +8,11 @@ class ReplanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Replan 2.2', debugShowCheckedModeBanner: false,
-    theme: ThemeData(useMaterial3: true, brightness: Brightness.dark,
+    themeMode: ThemeMode.system,
+    theme: ThemeData(useMaterial3: true, brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffff985a), brightness: Brightness.light),
+      scaffoldBackgroundColor: const Color(0xfffff8f5)),
+    darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffff985a), brightness: Brightness.dark),
       scaffoldBackgroundColor: const Color(0xff141114)),
     home: const PlannerPage(),
@@ -138,7 +142,7 @@ class _PlannerPageState extends State<PlannerPage> {
   Widget _panel(Widget child) => Card(child: Padding(padding: const EdgeInsets.all(20), child: child));
   Widget _heading(String title, String subtitle) => Padding(padding: const EdgeInsets.only(bottom: 20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-    const SizedBox(height: 8), Text(subtitle, style: const TextStyle(color: Colors.white60)),
+    const SizedBox(height: 8), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
   ]));
 
   Widget _session(Session s) => Card(child: CheckboxListTile(
@@ -158,12 +162,12 @@ class _PlannerPageState extends State<PlannerPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _heading('Your semester. Replanned.', 'Small steps today. A calmer exam season.'),
       _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('MAKE ROOM FOR PROGRESS', style: TextStyle(color: Color(0xffffb58b), letterSpacing: 2, fontSize: 12)),
+        Text('MAKE ROOM FOR PROGRESS', style: TextStyle(color: Theme.of(context).colorScheme.primary, letterSpacing: 2, fontSize: 12)),
         const SizedBox(height: 16), Text('${total == 0 ? 0 : (100 * done / total).round()}% of your study journey complete', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16), LinearProgressIndicator(value: total == 0 ? 0 : done / total, minHeight: 8),
         const SizedBox(height: 16), Text('${_courses.length} courses  ·  ${(done / 60).toStringAsFixed(1)} hours done  ·  ${((total - done) / 60).toStringAsFixed(1)} hours left'),
       ])),
-      if (_unscheduled > 0) _panel(Text('${(_unscheduled / 60).toStringAsFixed(1)} hours cannot fit before exams. Increase daily capacity, reduce workload, or review deadlines.', style: const TextStyle(color: Colors.orangeAccent))),
+      if (_unscheduled > 0) _panel(Text('${(_unscheduled / 60).toStringAsFixed(1)} hours cannot fit before exams. Increase daily capacity, reduce workload, or review deadlines.', style: TextStyle(color: Theme.of(context).colorScheme.error))),
       if (overdue > 0) _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('$overdue unfinished sessions are overdue.'),
         TextButton.icon(onPressed: _rebuild, icon: const Icon(Icons.refresh), label: const Text('Replan from today')),
@@ -178,7 +182,7 @@ class _PlannerPageState extends State<PlannerPage> {
   Widget _courseList() => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
     _heading('Your courses', 'Workload = credits × study hours per credit. Topics share the workload equally.'),
     for (final c in _courses) _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [const Icon(Icons.school_outlined, color: Color(0xffffb58b)), const SizedBox(width: 12),
+      Row(children: [Icon(Icons.school_outlined, color: Theme.of(context).colorScheme.primary), const SizedBox(width: 12),
         Expanded(child: Text(c.name, style: Theme.of(context).textTheme.titleLarge)),
         IconButton(onPressed: () => _remove(c), tooltip: 'Remove course', icon: const Icon(Icons.delete_outline))]),
       const SizedBox(height: 8), Text('${c.credits} credits · Exam ${dateLabel(c.exam)} · ${c.credits * _hours} study hours'),

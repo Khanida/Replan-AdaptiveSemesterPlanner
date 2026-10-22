@@ -10,7 +10,8 @@
   const courseFor=name=>state.courses.find(c=>c.name===name);
   const dot=course=>`<span style="color:color-mix(in srgb, ${esc(course?.color||'#ff8799')} 38%, var(--green))">●</span>`;
   let state=E.emptyState(), view='today', page=0, dailyPage=0, sortKey='Date',ascending=true,selected=new Set(), visible=[],editing=null;
-  let toastTimer,lastDay=E.today(),googleScript=null,syncing=false,contextIds=[];
+  let toastTimer,lastDay=E.today(),syncing=false,contextIds=[];
+  let accountSession=null,googleSession=null,authBusy=false,authVersion=0;
   let storageAvailable=true,startupError='';
   try {const saved=localStorage.getItem(KEY);if(saved)state=E.validateState(JSON.parse(saved));}
   catch(error){startupError='Could not restore browser storage. Your saved data has not been overwritten. Open a JSON backup, or save a new plan.';storageAvailable=false;}
@@ -134,8 +135,8 @@
   }
   function applyTheme(){
     document.documentElement.dataset.roast=state.roast;
-    const themes={'Off':'#0b1510','Mild':'#17150b','Medium':'#100b0d','Extra spicy':'#080506'};
-    document.querySelector('meta[name="theme-color"]').content=themes[state.roast]||themes.Medium;
+    document.querySelector('meta[name="theme-color"]').content=
+      getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   }
   function render(){
     applyTheme();
@@ -262,7 +263,7 @@
   function calendarOptions(){
     const options={...state.calendar,name:$('calendar-name').value.trim(),scope:$('calendar-scope').value,
       allDay:$('calendar-allday').checked,hour:Number($('calendar-hour').value),reminder:Number($('calendar-reminder').value),
-      clientId:$('google-client-id').value.trim(),courses:[...$('calendar-courses').querySelectorAll('input:checked')].map(input=>state.courses[Number(input.value)].name),ids:[...selected]};
+      courses:[...$('calendar-courses').querySelectorAll('input:checked')].map(input=>state.courses[Number(input.value)].name),ids:[...selected]};
     if(!options.name)throw Error('Give the calendar a name.');
     return options;
   }
@@ -277,23 +278,53 @@
     const options=state.calendar;
     $('calendar-courses').innerHTML=state.courses.map((c,i)=>`<label><input type="checkbox" value="${i}" checked> ${esc(c.icon+' '+c.name)}</label>`).join('');
     $('calendar-name').value=options.name;$('calendar-scope').value=options.scope;$('calendar-hour').value=String(options.hour);
-    $('calendar-reminder').value=String(options.reminder);$('calendar-allday').checked=options.allDay;$('calendar-hour').disabled=options.allDay;$('google-client-id').value=options.clientId;
-    $('calendar-dialog').showModal();updateCalendarPreview();
+    $('calendar-reminder').value=String(options.reminder);$('calendar-allday').checked=options.allDay;$('calendar-hour').disabled=options.allDay;
+    $('calendar-dialog').showModal();updateGoogleAccount();updateCalendarPreview();
+
   }
-  function keepCalendarOptions(options){state.calendar={name:options.name,scope:options.scope,allDay:options.allDay,hour:options.hour,reminder:options.reminder,clientId:options.clientId};persist();}
+  function keepCalendarOptions(options){state.calendar={name:options.name,scope:options.scope,allDay:options.allDay,hour:options.hour,reminder:options.reminder};persist();}
   async function exportICS(){
     try{const options=calendarOptions(),rows=E.calendarRows(state,options);if(!rows.length)throw Error('Choose at least one course with matching sessions.');
       if(!await download('replan-roadmap.ics',E.toICS(rows,options),'text/calendar;charset=utf-8'))return;keepCalendarOptions(options);notify(`${rows.length} calendar sessions exported. Import the .ics file in your calendar app.`);
     }catch(error){$('calendar-error').textContent=error.message;}
   }
-  function loadGoogle(){
-    if(window.google?.accounts?.oauth2)return Promise.resolve();
-    if(googleScript)return googleScript;
-    googleScript=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;
-      const timer=setTimeout(()=>{googleScript=null;reject(Error('Google sign-in could not load. Check your connection, or use .ics export.'));},15000);
-      script.onload=()=>{clearTimeout(timer);resolve();};script.onerror=()=>{clearTimeout(timer);googleScript=null;reject(Error('Google sign-in could not load. You can still export an .ics file.'));};document.head.append(script);
-    });return googleScript;
+  function updateGoogleAccount(){
+    const account=accountSession?.profile;
+    $('google-account').textContent=account ? (account.name||account.email||'Account') : 'Sign in';
+    $('google-profile').hidden=!account;
+    $('google-profile').textContent=account ? `Signed in with ${accountSession.provider==='apple'?'Apple':'Google'} as ${account.email||account.name||'your account'}.` : '';
+    $('google-signout').hidden=!accountSession;
+    $('google-sync').textContent='Add tasks to Google Calendar';
+  }
+  function openGoogleLogin(){
+    $('google-login-error').textContent='';$('google-login-status').textContent='';
+    updateGoogleAccount();$('google-dialog').showModal();
+  }
+  async function signInProvider(provider){
+    if(authBusy||syncing)return;
+    const attempt=++authVersion;
+    authBusy=true;$('google-login-error').textContent='';
+    $('google-signin').disabled=true;$('apple-signin').disabled=true;
+    $('google-login-status').textContent='Complete sign-in in the secure browser window…';
+    try{
+      const session=await window.ReplanAuth.signIn(provider);
+      if(attempt!==authVersion)return;
+      accountSession=session;googleSession=null;updateGoogleAccount();
+      $('google-login-status').textContent='Signed in. Your plan is still saved on this device.';
+    }catch(error){if(attempt===authVersion){$('google-login-status').textContent='';$('google-login-error').textContent=error.message;}}
+    finally{authBusy=false;$('google-signin').disabled=false;$('apple-signin').disabled=false;}
+  }
+  function signOutGoogle(){
+    if(syncing)return;
+    authVersion++;accountSession=null;googleSession=null;updateGoogleAccount();
+    $('google-login-status').textContent='Signed out of Replan. Your local plan is still available.';
+  }
+  async function calendarToken(){
+    if(googleSession&&googleSession.expires>Date.now())return googleSession.calendarToken;
+    const session=await window.ReplanAuth.signIn('google',true);
+    googleSession={...session,expires:Date.now()+45*60*1000};
+    if(!accountSession)accountSession={provider:session.provider,profile:session.profile};
+    updateGoogleAccount();return session.calendarToken;
   }
   async function api(token,path,method='GET',body){
     const response=await fetch('https://www.googleapis.com/calendar/v3'+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
@@ -309,15 +340,8 @@
     event.preventDefault();$('calendar-error').textContent='';let added=0;
     try{
       const options=calendarOptions(),rows=E.calendarRows(state,options);if(!rows.length)throw Error('No matching sessions to sync.');
-      if(location.protocol==='file:')throw Error('Direct Google sign-in needs an HTTP or HTTPS page. Serve this folder on localhost, or use Export .ics.');
-      if(!options.clientId.endsWith('.apps.googleusercontent.com'))throw Error('Enter a Google OAuth web client ID under Direct Google Calendar setup. You can also use .ics export without setup.');
-      if(!window.google?.accounts?.oauth2){$('sync-progress').textContent='Loading Google sign-in…';await loadGoogle();$('sync-progress').textContent='Google sign-in is ready. Press Connect & sync Google again to open sign-in.';return;}
       keepCalendarOptions(options);syncing=true;updateCalendarPreview();$('sync-progress').textContent='Waiting for Google sign-in and calendar permission…';
-      const token=await new Promise((resolve,reject)=>{
-        const client=google.accounts.oauth2.initTokenClient({client_id:options.clientId,scope:'https://www.googleapis.com/auth/calendar',
-          callback:response=>response.error?reject(Error(response.error_description||response.error)):resolve(response.access_token),
-          error_callback:error=>reject(Error(error.type==='popup_closed'?'Google sign-in was closed. No sessions were synced.':'Google sign-in could not open. Allow its popup and try again.'))});client.requestAccessToken({prompt:'consent'});
-      });
+      const token=await calendarToken();
       $('sync-progress').textContent='Finding your study calendar…';
       let calendar=null,pageToken='';
       do{const list=await api(token,'/users/me/calendarList?maxResults=250'+(pageToken?'&pageToken='+encodeURIComponent(pageToken):''));calendar=(list.items||[]).find(c=>c.summary===options.name&&['owner','writer'].includes(c.accessRole));pageToken=list.nextPageToken||'';}while(!calendar&&pageToken);
@@ -330,7 +354,7 @@
         added++;$('sync-progress').textContent=`Synced ${added} of ${events.length} sessions…`;
       }
       $('sync-progress').textContent=`Synced ${added} sessions to “${options.name}”. Matching sessions are updated on repeat sync.`;notify(`${added} Google Calendar sessions synced.`);
-    }catch(error){$('calendar-error').textContent=(added?`${added} sessions were synced before this stopped. `:'')+error.message;}
+    }catch(error){if(error.status===401)googleSession=null;$('calendar-error').textContent=(added?`${added} sessions were synced before this stopped. `:'')+error.message;}
     finally{syncing=false;updateCalendarPreview();}
   }
   function printReport(){
@@ -344,7 +368,7 @@
     page=Math.floor(index/75);renderSchedule();switchView('schedule');
     const target=$('schedule-body').querySelector('.today-row');if(target)target.scrollIntoView({block:'center',behavior:'smooth'});
   }
-  const actions={backup,open:()=>$('open-file').click(),save,calendar:openCalendar,'add-course':()=>openCourse(),demo:loadDemo,
+  const actions={'google-login':openGoogleLogin,'continue-guest':()=>{signOutGoogle();$('google-dialog').close();},backup,open:()=>$('open-file').click(),save,calendar:openCalendar,'add-course':()=>openCourse(),demo:loadDemo,
     replan:()=>adaptiveReplan(),roast:()=>{state.variation++;persist();$('roast-message').textContent=E.roast(state);},guide:()=>$('guide-dialog').showModal(),
     'view-courses':()=>switchView('courses'),'export-csv':async()=>{if(!state.rows.length)throw Error('Generate a plan before exporting.');if(!await download('replan-semester.csv',E.toCSV(state),'text/csv;charset=utf-8'))return;notify('CSV exported. Download CSV metadata too to preserve exact course details.');},
     'export-meta':async()=>{if(!await download('replan-semester.csv.meta.json',JSON.stringify(metadata(),null,2),'application/json'))return;notify('Metadata exported. Keep it beside the matching CSV, or use JSON backup for one complete plan file.');},
@@ -389,6 +413,10 @@
     const menu=$('row-menu');menu.hidden=false;menu.style.left=Math.min(event.clientX,window.innerWidth-205)+'px';menu.style.top=Math.min(event.clientY,window.innerHeight-140)+'px';menu.querySelector('button').focus();
   });
   document.addEventListener('keydown',event=>{if(event.key==='Escape')$('row-menu').hidden=true;if((event.metaKey||event.ctrlKey)&&['s','o'].includes(event.key.toLowerCase())){event.preventDefault();event.key.toLowerCase()==='s'?safe(save)():$('open-file').click();}});
+  $('google-signin').addEventListener('click',()=>signInProvider('google'));
+  $('apple-signin').addEventListener('click',()=>signInProvider('apple'));
+  $('google-signout').addEventListener('click',signOutGoogle);
+  updateGoogleAccount();
   $('calendar-hour').innerHTML=Array.from({length:24},(_,hour)=>`<option value="${hour}">${String(hour).padStart(2,'0')}:00</option>`).join('');
   $('calendar-form').addEventListener('input',updateCalendarPreview);$('calendar-form').addEventListener('change',updateCalendarPreview);$('calendar-form').addEventListener('submit',syncCalendar);
   $('calendar-allday').addEventListener('change',()=>$('calendar-hour').disabled=$('calendar-allday').checked);
@@ -399,6 +427,9 @@
   document.addEventListener('visibilitychange',safe(checkDay));setInterval(safe(checkDay),60000);
   window.addEventListener('hashchange',()=>switchView(location.hash.slice(1)));
   if(state.rows.some(r=>r.Date<E.today()&&['Pending','Rescheduled'].includes(r.Status))){state=E.replan(state,E.today(),'Caught up overdue sessions on open');persist();}
+  const systemAppearance=window.matchMedia('(prefers-color-scheme: light)');
+  if(systemAppearance.addEventListener)systemAppearance.addEventListener('change',applyTheme);
+  else systemAppearance.addListener(applyTheme);
   view=location.hash.slice(1)||'today';render();
   if(startupError){document.querySelector('.local-badge').textContent='Open a backup to restore';notify(startupError,true);}
 })();

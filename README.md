@@ -96,18 +96,18 @@ python3 replanv2_1.py
 
 If using this repository’s virtual environment, run `.venv/bin/python replanv2_1.py`.
 
-- Keep the five `replanv2` web assets beside the launcher.
+- Keep the `replanv2` web assets, `replan_auth.py`, and `replan-auth.json` beside the launcher.
 - Exports use a native **Save As** dialog; cancelling does not write a file or report a successful save.
 - Desktop autosave uses a separate profile in `.replanv2-desktop/` (ignored by git). It does not automatically import browser storage; transfer an existing plan with **JSON backup** and **Open plan**.
 - The internal server uses localhost port `17863` to retain a stable storage origin. `--port` can choose another port; that origin has separate browser storage.
-- Calendar `.ics` export works without account setup. Google OAuth inside an embedded webview may be restricted by Google; use the browser edition for direct sign-in.
+- Calendar `.ics` export works without account setup. Optional Google and Apple sign-in opens the system browser and returns to the desktop app; see [authentication setup](AUTH_SETUP.md).
 - macOS uses the native WebKit renderer. Windows needs WebView2; Linux needs a supported GTK or Qt webview backend. See [pywebview’s platform documentation](https://pywebview.flowrl.com/guide/installation.html).
 
 Check native export behavior with `python3 -m unittest test_replanv2_1 -v`.
 
 ### Replan - Adaptive Semester Planner (browser edition)
 
-Open `replanv2.html` in a browser. Keep `replanv2.css`, `replanv2-engine.js`, `replanv2-pdf.js`, and `replanv2.js` beside it. The core planner runs locally without a build step or third-party JavaScript libraries.
+Open `replanv2.html` in a browser. Keep `replanv2.css`, `replanv2-engine.js`, `replanv2-pdf.js`, `replanv2-auth.js`, `replan-auth.json`, and `replanv2.js` beside it. The core planner runs locally without a build step or third-party JavaScript libraries.
 
 The browser edition includes the v1.2 multi-course workflow: course add/edit/remove with badge themes, outlines and exam-date presets; configurable credit-hour workload estimates; daily milestones; individual and batch completion/missed/pending controls; adaptive replanning; automatic overdue catch-up; roadmap search, filters, sorting and jump-to-today; course progress and topic timelines; daily workload and feasibility alerts; insights and replan history; adjustable roast intensity; JSON backups; desktop-compatible CSV and companion metadata; calendar export; and print/save-to-PDF.
 
@@ -117,7 +117,8 @@ The browser edition includes the v1.2 multi-course workflow: course add/edit/rem
 - **Desktop CSV:** select a `.csv` and its matching `.csv.meta.json` together in **Open plan**. Without metadata, course credits and exam dates are inferred and should be reviewed. Export **CSV** and **CSV metadata** together to preserve course details for the Python app.
 - **Workload:** credits × study hours per credit estimates total work. Required hours spread across days strictly before each exam; the daily limit diagnoses overload. Missed rows stay as history, while recovered work counts once. Completed work and all remaining topics are preserved during replanning. Expired deadlines show unscheduled hours.
 - **Calendar:** select courses, upcoming/all/selected sessions, all-day or timed events, a start time, and reminders. `.ics` export works without Google sign-in. Timed sessions run consecutively per day.
-- **Google sync:** enable the Calendar API and supply a Google OAuth **web** client ID in the calendar dialog. Authorize the page’s HTTP(S) origin in that client’s settings. The public client ID is saved locally; access tokens stay in memory. Sync creates or uses a named study calendar and updates matching sessions on repeated sync. It does not delete earlier events when a roadmap changes. Live Google authorization requires your configured client and is not part of the automated checks. See [Google’s token-model guide](https://developers.google.com/identity/oauth2/web/guides/use-token-model) and [Calendar events API](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert).
+- **Optional account:** click **Sign in** at the top right, then **Continue with Google** or **Continue with Apple**. **Continue as guest** keeps the app available without an account. No user enters client IDs. Developer setup lives in [AUTH_SETUP.md](AUTH_SETUP.md). Account details and calendar tokens stay in memory; sign out clears them from Replan. This does not sign out of Google or Apple in your browser. Sign-in does not upload or back up your plan.
+- **Google sync:** **Calendar → Add tasks to Google Calendar** asks for Google Calendar permission separately from account sign-in. Apple users can connect a Google account for Calendar while keeping their Apple sign-in. Sync creates or uses a named study calendar and updates matching sessions on repeated sync. It does not delete earlier events when a roadmap changes. Live authorization requires the configured providers and has not been verified by automated checks.
 
 For localhost preview and Google authorization, run:
 
@@ -125,7 +126,7 @@ For localhost preview and Google authorization, run:
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-Then open `http://127.0.0.1:8765/replanv2.html`. Register `http://127.0.0.1:8765` as your Google web client’s JavaScript origin.
+Then open `http://127.0.0.1:8765/replanv2.html`. Allow this page’s callback URL in Supabase as described in [AUTH_SETUP.md](AUTH_SETUP.md).
 
 Run browser-engine checks with `node --test test-no-replan.cjs test-no-replan-pdf.cjs`.
 

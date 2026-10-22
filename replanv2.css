@@ -1,4 +1,4 @@
-/* Roast intensity controls both the coach and the app palette. */
+/* System appearance selects light/dark; roast intensity selects accent colors. */
 :root {
   color-scheme: dark;
   --bg: #100b0d; --sidebar: #160e11; --card: #1e1418; --raised: #2b1c22;
@@ -38,6 +38,47 @@
   --text:#fff3f5; --muted:#d5aeba; --primary:#c21c40; --primary-hover:#a01434;
   --hover:#401624; --selected:#521a2d; --input:#10070b;
   --coach-start:#531329; --coach-end:#240c15; --track:#602337;
+}
+/* Media queries also update an open desktop window when system appearance changes. */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg:#fff5f7; --sidebar:#f9e9ee; --card:#ffffff; --raised:#f4e1e7;
+    --border:#cda6b3; --green:#a31e3c; --green-dark:#f7dfe6;
+    --text:#32151f; --muted:#71515e; --amber:#805000; --red:#a01935;
+    --primary:#b52642; --primary-hover:#962038; --on-primary:#ffffff;
+    --hover:#f2d9e2; --selected:#efd0dc; --input:#ffffff;
+    --coach-start:#f7dce5; --coach-end:#fff0f4; --track:#dfbcc9;
+    --success-bg:#f3e6ed; --success-text:#503240;
+    --warning-bg:#fff3d8; --warning-border:#b78c40;
+    --danger-bg:#ffe4ea; --danger-border:#c67589;
+    --disabled-bg:#eee2e7; --disabled-text:#78616a;
+  }
+  :root[data-roast="Off"] {
+    --bg:#f3faf5; --sidebar:#e5f2e9; --card:#ffffff; --raised:#deeee3;
+    --border:#9cbeaa; --green:#226b3e; --green-dark:#dcefe2;
+    --text:#152f20; --muted:#496653; --primary:#276b40; --primary-hover:#1c5430; --on-primary:#ffffff;
+    --hover:#d4e9db; --selected:#c9e4d2; --input:#ffffff;
+    --coach-start:#d8eddf; --coach-end:#edf8f0; --track:#b9d7c4;
+    --success-bg:#dcefe2; --success-text:#214e31;
+    --disabled-bg:#e1eae4; --disabled-text:#596f61;
+  }
+  :root[data-roast="Mild"] {
+    --bg:#fffbee; --sidebar:#f6efd8; --card:#ffffff; --raised:#f2e8c8;
+    --border:#c5b371; --green:#735900; --green-dark:#f3e8bc;
+    --text:#332b12; --muted:#6d6036; --primary:#735900; --primary-hover:#594500; --on-primary:#ffffff;
+    --hover:#eee1b5; --selected:#eaddaa; --input:#ffffff;
+    --coach-start:#f4e8b9; --coach-end:#fff9e6; --track:#d9ca94;
+    --success-bg:#f2ebd2; --success-text:#56491b;
+    --disabled-bg:#ece7d7; --disabled-text:#746b4e;
+  }
+  :root[data-roast="Extra spicy"] {
+    --bg:#fff1f4; --sidebar:#f9dfe6; --card:#ffffff; --raised:#f5d4de;
+    --border:#cb8ea1; --green:#ac153b; --green-dark:#f9d7e1;
+    --text:#390f1e; --muted:#784354; --primary:#b81940; --primary-hover:#971032;
+    --hover:#f1c5d3; --selected:#ecb8c9; --input:#ffffff;
+    --coach-start:#facad9; --coach-end:#ffe8ef; --track:#dea5b7;
+  }
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
@@ -80,7 +121,8 @@ p{line-height:1.6}
 .brand small{display:block;color:var(--muted);font-size:8px;letter-spacing:1.8px;margin-top:3px}
 .brand-mark{display:grid;place-items:center;background:var(--primary);color:var(--on-primary);border-radius:11px;width:44px;height:44px;flex-shrink:0}
 .brand-mark svg{display:block;width:29px;height:29px}
-.header-actions{display:flex;align-items:center;gap:9px}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#google-account{max-width:200px;overflow:hidden;text-overflow:ellipsis;display:block}
 .local-badge{font-size:10px;color:var(--muted);display:inline-flex;align-items:center;gap:7px;margin-right:18px}
 .local-badge i{width:6px;height:6px;background:var(--green);border-radius:50%}
 .workspace{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:calc(100vh - 90px)}
@@ -218,7 +260,7 @@ td.nowrap{white-space:nowrap}
 .main-footer{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:28px;padding-top:16px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)}
 .main-footer>span:last-child{white-space:nowrap;font-size:8px;letter-spacing:1.3px}
 .main-footer>span:last-child span{margin:0 7px}
-dialog{border:1px solid var(--border);border-radius:20px;background:#c3cbc4;color:var(--text);padding:28px;width:calc(100% - 32px);max-width:560px;max-height:90vh;overflow:auto;box-shadow:0 30px 100px #00000044}
+dialog{border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);padding:28px;width:calc(100% - 32px);max-width:560px;max-height:90vh;overflow:auto;box-shadow:0 30px 100px #00000044}
 dialog::backdrop{background:#00000099;backdrop-filter:blur(5px)}
 .dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
 .dialog-heading .eyebrow{margin-bottom:5px}
@@ -347,3 +389,5 @@ body{background:white!important;color:#111!important}
 /* Explicit menu colors keep every intensity readable. */
 select option, select optgroup { background:var(--raised); color:var(--text); }
 ::selection { background:var(--primary); color:var(--on-primary); }
+
+.signin-options{display:grid;gap:12px;margin:24px 0}

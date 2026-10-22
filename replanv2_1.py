@@ -14,11 +14,12 @@ import base64
 import binascii
 import sys
 from pathlib import Path
+from replan_auth import DesktopAuth
 
 APP_NAME = "Replan - Adaptive Semester Planner"
 APP_ROOT = Path(__file__).resolve().parent
 ASSETS = ("replanv2.html", "replanv2.css", "replanv2.js",
-          "replanv2-engine.js", "replanv2-pdf.js")
+          "replanv2-engine.js", "replanv2-pdf.js", "replanv2-auth.js")
 DEFAULT_PORT = 17863  # Stable origin keeps desktop autosave available between launches.
 
 
@@ -28,9 +29,14 @@ class DesktopAPI:
     def __init__(self, webview_module):
         self._webview = webview_module
         self._window = None
+        self._auth = DesktopAuth(APP_ROOT)
 
     def _attach(self, window):
         self._window = window
+
+    def sign_in(self, provider: str, calendar: bool = False) -> dict:
+        """Open optional Google/Apple sign-in in the user's system browser."""
+        return self._auth.sign_in(provider, calendar)
 
     def save_file(self, filename: str, encoded: str) -> dict:
         if self._window is None:
