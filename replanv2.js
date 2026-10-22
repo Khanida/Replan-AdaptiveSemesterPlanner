@@ -304,7 +304,7 @@
     if(authBusy||syncing)return;
     const attempt=++authVersion;
     authBusy=true;$('google-login-error').textContent='';
-    $('google-signin').disabled=true;$('apple-signin').disabled=true;
+    $('google-signin').disabled=true;
     $('google-login-status').textContent='Complete sign-in in the secure browser window…';
     try{
       const session=await window.ReplanAuth.signIn(provider);
@@ -312,7 +312,7 @@
       accountSession=session;googleSession=null;updateGoogleAccount();
       $('google-login-status').textContent='Signed in. Your plan is still saved on this device.';
     }catch(error){if(attempt===authVersion){$('google-login-status').textContent='';$('google-login-error').textContent=error.message;}}
-    finally{authBusy=false;$('google-signin').disabled=false;$('apple-signin').disabled=false;}
+    finally{authBusy=false;$('google-signin').disabled=false;}
   }
   function signOutGoogle(){
     if(syncing)return;
@@ -414,7 +414,6 @@
   });
   document.addEventListener('keydown',event=>{if(event.key==='Escape')$('row-menu').hidden=true;if((event.metaKey||event.ctrlKey)&&['s','o'].includes(event.key.toLowerCase())){event.preventDefault();event.key.toLowerCase()==='s'?safe(save)():$('open-file').click();}});
   $('google-signin').addEventListener('click',()=>signInProvider('google'));
-  $('apple-signin').addEventListener('click',()=>signInProvider('apple'));
   $('google-signout').addEventListener('click',signOutGoogle);
   updateGoogleAccount();
   $('calendar-hour').innerHTML=Array.from({length:24},(_,hour)=>`<option value="${hour}">${String(hour).padStart(2,'0')}:00</option>`).join('');

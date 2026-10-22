@@ -1,7 +1,9 @@
 # Optional Google and Apple sign-in
 
-The sign-in UI and OAuth code are ready. Live sign-in is **not enabled** until
-the app owner configures a Supabase project and its providers. Users never enter
+The app is configured for Supabase project `zhdgciafkwqbxwtvnbkj`, and its
+public auth settings confirm Google is enabled. Complete the redirect allowlist
+below and verify an interactive login before release. Apple is not enabled.
+Users never enter
 API keys or OAuth client IDs. They choose Google, Apple, or Continue as guest.
 
 ## Configure the project once

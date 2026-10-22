@@ -11,6 +11,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
 import secrets
+import ssl
+import sys
 import threading
 import time
 from urllib.error import HTTPError, URLError
@@ -52,8 +54,15 @@ def auth_request(config: dict, path: str, body=None, token=None) -> dict:
     request = Request(config['url'] + '/auth/v1' + path,
                       data=json.dumps(body).encode() if body is not None else None,
                       headers=headers)
+    context = ssl.create_default_context()
+    # python.org macOS installations may lack their optional CA bundle.
+    # Use the system trust bundle while retaining certificate verification.
+    if sys.platform == 'darwin' and not ssl.get_default_verify_paths().cafile:
+        system_bundle = Path('/etc/ssl/cert.pem')
+        if system_bundle.is_file():
+            context.load_verify_locations(cafile=str(system_bundle))
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=20, context=context) as response:
             return json.load(response)
     except (HTTPError, URLError, ValueError):
         raise RuntimeError('Sign-in could not finish. Please try again or continue as a guest.') from None
