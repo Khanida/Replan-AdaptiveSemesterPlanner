@@ -1,6 +1,195 @@
 [
-  {"name":"competing deadlines","start":"2026-10-23","cap":60,"rate":1,"courses":[{"id":"later","name":"Later","credits":1,"exam":"2026-10-26","topics":["L"]},{"id":"urgent","name":"Urgent","credits":1,"exam":"2026-10-24","topics":["U"]}],"done":[],"unscheduled":0,"daily":{"2026-10-23":60,"2026-10-24":60}},
-  {"name":"partial completion final day","start":"2026-10-23","cap":120,"rate":1,"courses":[{"id":"a","name":"A","credits":1,"exam":"2026-10-24","topics":["X","Y"]}],"done":[{"courseId":"a","topic":"X","date":"2026-10-23","minutes":30,"done":true}],"unscheduled":0,"daily":{"2026-10-23":60}},
-  {"name":"impossible deadline","start":"2026-10-23","cap":30,"rate":1,"courses":[{"id":"a","name":"A","credits":1,"exam":"2026-10-24","topics":["X"]}],"done":[],"unscheduled":30,"daily":{"2026-10-23":30}},
-  {"name":"day off","start":"2026-10-23","cap":60,"rate":1,"courses":[{"id":"a","name":"A","credits":1,"exam":"2026-10-26","topics":["X"]}],"done":[],"availability":{"weekdays":{"5":0},"dates":{}},"unscheduled":0,"daily":{"2026-10-24":60}}
+  {
+    "name": "competing deadlines",
+    "start": "2026-10-23",
+    "cap": 60,
+    "rate": 1,
+    "courses": [
+      {
+        "id": "later",
+        "name": "Later",
+        "credits": 1,
+        "exam": "2026-10-26",
+        "topics": [
+          "L"
+        ]
+      },
+      {
+        "id": "urgent",
+        "name": "Urgent",
+        "credits": 1,
+        "exam": "2026-10-24",
+        "topics": [
+          "U"
+        ]
+      }
+    ],
+    "done": [],
+    "unscheduled": 0,
+    "daily": {
+      "2026-10-23": 60,
+      "2026-10-24": 60
+    }
+  },
+  {
+    "name": "partial completion final day",
+    "start": "2026-10-23",
+    "cap": 120,
+    "rate": 1,
+    "courses": [
+      {
+        "id": "a",
+        "name": "A",
+        "credits": 1,
+        "exam": "2026-10-24",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      }
+    ],
+    "done": [
+      {
+        "courseId": "a",
+        "topic": "X",
+        "date": "2026-10-23",
+        "minutes": 30,
+        "done": true
+      }
+    ],
+    "unscheduled": 0,
+    "daily": {
+      "2026-10-23": 60
+    }
+  },
+  {
+    "name": "impossible deadline",
+    "start": "2026-10-23",
+    "cap": 30,
+    "rate": 1,
+    "courses": [
+      {
+        "id": "a",
+        "name": "A",
+        "credits": 1,
+        "exam": "2026-10-24",
+        "topics": [
+          "X"
+        ]
+      }
+    ],
+    "done": [],
+    "unscheduled": 30,
+    "daily": {
+      "2026-10-23": 30
+    }
+  },
+  {
+    "name": "day off",
+    "start": "2026-10-23",
+    "cap": 60,
+    "rate": 1,
+    "courses": [
+      {
+        "id": "a",
+        "name": "A",
+        "credits": 1,
+        "exam": "2026-10-26",
+        "topics": [
+          "X"
+        ]
+      }
+    ],
+    "done": [],
+    "availability": {
+      "weekdays": {
+        "5": 0
+      },
+      "dates": {}
+    },
+    "unscheduled": 0,
+    "daily": {
+      "2026-10-24": 60
+    }
+  },
+  {
+    "name": "one topic per course each day",
+    "start": "2026-10-23",
+    "cap": 180,
+    "rate": 1,
+    "courses": [
+      {
+        "id": "A",
+        "name": "A",
+        "credits": 1,
+        "exam": "2026-10-26",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      },
+      {
+        "id": "B",
+        "name": "B",
+        "credits": 1,
+        "exam": "2026-10-26",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      },
+      {
+        "id": "C",
+        "name": "C",
+        "credits": 1,
+        "exam": "2026-10-26",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      }
+    ],
+    "done": [],
+    "unscheduled": 0,
+    "daily": {
+      "2026-10-23": 90,
+      "2026-10-24": 90
+    }
+  },
+  {
+    "name": "courses without capacity get first turn tomorrow",
+    "start": "2026-10-23",
+    "cap": 60,
+    "rate": 2,
+    "courses": [
+      {
+        "id": "A",
+        "name": "A",
+        "credits": 1,
+        "exam": "2026-10-27",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      },
+      {
+        "id": "B",
+        "name": "B",
+        "credits": 1,
+        "exam": "2026-10-27",
+        "topics": [
+          "X",
+          "Y"
+        ]
+      }
+    ],
+    "done": [],
+    "unscheduled": 0,
+    "daily": {
+      "2026-10-23": 60,
+      "2026-10-24": 60,
+      "2026-10-25": 60,
+      "2026-10-26": 60
+    }
+  }
 ]

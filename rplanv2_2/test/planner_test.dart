@@ -53,7 +53,7 @@ void main() {
     expect(result.unscheduled, 60);
   });
   test('allocates urgent course first and retains every topic minute', () {
-    final late = Course('late', 'Late', 1, DateTime(2026, 10, 25), [
+    final late = Course('late', 'Late', 1, DateTime(2026, 10, 30), [
       'A',
       'B',
       'C',

@@ -82,3 +82,17 @@ test('unknown or noninteger workload metadata cannot corrupt progress totals',()
     assert.throws(()=>E.validateState(s));
   }
 });
+test('daily roadmap mixes courses and selects only one topic per course',()=>{
+  const s=E.generate(state(['A','B','C'].map(c=>course(c,4,['X','Y'],2)),3));
+  for(const date of [ON,E.addDays(ON,1)]){
+    const rows=s.rows.filter(r=>r.Date===date);
+    assert.equal(new Set(rows.map(r=>r.Course)).size,3);
+    for(const c of ['A','B','C'])assert.equal(new Set(rows.filter(r=>r.Course===c).map(r=>r.Topic)).size,1);
+  }
+  assert.equal(E.analyze(s,ON).unplaced,0);
+});
+test('courses skipped by the daily limit carry over ahead of courses already served',()=>{
+  const s=E.generate(state(['A','B','C'].map(c=>course(c,6,['X','Y'],2)),1));
+  assert.deepEqual([0,1,2].map(i=>s.rows.find(r=>r.Date===E.addDays(ON,i)).Course),['A','B','C']);
+  assert.ok(E.analyze(s,ON).daily.every(d=>d.hours<=1));
+});

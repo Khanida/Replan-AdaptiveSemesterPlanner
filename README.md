@@ -24,7 +24,7 @@ Keep the HTML, CSS, `replanv2.js`, `replanv2-engine.js`, `replanv2-calendar.js`,
 ## What works
 
 - Multiple courses, credit hours, unique topic outlines and separate exam dates.
-- Shared daily capacity, earliest-deadline scheduling and sessions of up to one hour.
+- Shared daily capacity, daily course rotation and sessions of up to one hour.
 - Optional **topic estimates in hours**, one per outline topic. Blank estimates use the credit-based default. Add revision and practice as explicit topics when needed.
 - Optional weekday availability and date exceptions. Blank weekdays use the default daily limit; zero means a day off. Date exceptions take priority.
 - Completion, missed-session history, manual replanning and automatic overdue catch-up in the browser app.
@@ -35,7 +35,7 @@ Keep the HTML, CSS, `replanv2.js`, `replanv2-engine.js`, `replanv2-calendar.js`,
 
 ## Scheduling contract
 
-Courses are allocated by earliest exam first, with credits and course name breaking ties. Topics keep outline order. All courses share the same daily budget, including completed work already recorded on that date. No new session is placed on or after its exam date. Replanning keeps completed sessions, retains missed history, and replaces pending work; a completed session does not block the rest of its day. A session marked missed can be recovered later the same day if capacity remains. Set today's available hours to zero if no more study is possible today.
+Each day rotates through courses, selecting one unfinished topic per course in outline order. Initial priority is earliest exam, then higher credits and course name. Each course gets a turn of up to one hour before any course gets another turn on that same topic. Courses that receive no time get the first turns the next day. A long topic may span days; the next topic starts on a later day. This keeps the daily plan varied rather than filling it with one course. All courses share the same daily budget, including completed work already recorded on that date. No new session is placed on or after its exam date. Replanning keeps completed sessions, retains missed history, and replaces pending work; a completed session does not block the rest of its day. A session marked missed can be recovered later the same day if capacity remains. Set today's available hours to zero if no more study is possible today.
 
 Workload defaults to `credits × study hours per credit`, divided equally across topics, with explicit topic estimates replacing the default for those topics. Credit hours are a rough starting estimate, not a measurement of study effort. Review the estimates yourself. “Adaptive” means redistributing unfinished work as dates and availability change; the application does **not** infer mastery or learn study speed from actual durations.
 
@@ -65,7 +65,7 @@ Desktop storage is a separate `.replanv2-desktop/` profile. Its stable localhost
 
 ## Mobile app v2_1
 
-Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides local autosave plus JSON backup/import. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
+Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides a **Download PDF daily checklist** button plus optional Google/Apple sign-in. JSON backup/import remains under **Plan backup and recovery** in Settings. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
 
 ## Checks
 

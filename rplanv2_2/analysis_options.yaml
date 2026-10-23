@@ -3,6 +3,8 @@ analyzer:
     - build/**
     - macos/**
     - web/**
+    - android/**
+    - ios/**
   errors:
     missing_return: error
     dead_code: warning

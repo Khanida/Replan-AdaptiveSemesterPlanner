@@ -1,10 +1,16 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'planner.dart';
+import 'checklist_pdf.dart';
+import 'account_button.dart';
+
+import 'package:printing/printing.dart';
 
 class ReplanApp extends StatelessWidget {
   const ReplanApp({super.key});
@@ -49,7 +55,7 @@ class _PlannerPageState extends State<PlannerPage> {
   List<Session> _sessions = [];
   DateTime _start = day(DateTime.now());
   int _daily = 150, _hours = 12, _unscheduled = 0, _tab = 0;
-  bool _loading = true, _restoreFailed = false;
+  bool _loading = true, _restoreFailed = false, _exportingPdf = false;
   String? _unreadable;
   String _planId = newPlanIdentity();
   Map<String, Map<String, int>> _availability = {'weekdays': {}, 'dates': {}};
@@ -124,6 +130,44 @@ class _PlannerPageState extends State<PlannerPage> {
     _unscheduled = snapshot.unscheduled;
     _availability = snapshot.availability;
     _planId = snapshot.planId;
+  }
+
+  Future<void> _downloadPdf() async {
+    if (_exportingPdf || _sessions.isEmpty) return;
+    final snapshot = _snapshot();
+    setState(() => _exportingPdf = true);
+    try {
+      final bytes = await buildDailyChecklist(
+        snapshot,
+        fontData: await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+        arabicFontData: await rootBundle.load(
+          'assets/fonts/NotoSansArabic-Regular.ttf',
+        ),
+      );
+      final name = 'replan-daily-checklist.pdf';
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS)) {
+        await Printing.sharePdf(bytes: bytes, filename: name);
+      } else {
+        final file = XFile.fromData(
+          bytes,
+          mimeType: 'application/pdf',
+          name: name,
+        );
+        if (kIsWeb) {
+          await file.saveTo(name);
+        } else {
+          final destination = await getSaveLocation(suggestedName: name);
+          if (destination == null) return;
+          await file.saveTo(destination.path);
+        }
+      }
+    } catch (_) {
+      _message('Could not export the PDF checklist. Please try again.');
+    } finally {
+      if (mounted) setState(() => _exportingPdf = false);
+    }
   }
 
   Future<void> _exportBackup({bool original = false}) async {
@@ -307,8 +351,7 @@ class _PlannerPageState extends State<PlannerPage> {
                   );
                 } catch (_) {
                   update(
-                    () => error =
-                        'Use 0–1440 minutes and date exceptions as YYYY-MM-DD = minutes.',
+                    () => error = 'Use 0–1440 minutes and date exceptions as YYYY-MM-DD = minutes.',
                   );
                 }
               },
@@ -604,9 +647,8 @@ class _PlannerPageState extends State<PlannerPage> {
       children: [
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.headlineMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
@@ -898,23 +940,37 @@ class _PlannerPageState extends State<PlannerPage> {
           ],
         ),
       ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
+      FilledButton.icon(
+        onPressed: _sessions.isEmpty || _exportingPdf ? null : _downloadPdf,
+        icon: const Icon(Icons.picture_as_pdf_outlined),
+        label: Text(
+          _exportingPdf ? 'Preparing PDF...' : 'Download PDF daily checklist',
+        ),
+      ),
+      const SizedBox(height: 12),
+      OutlinedButton(
+        onPressed: _availabilityDialog,
+        child: const Text('Availability overrides'),
+      ),
+      ExpansionTile(
+        title: const Text('Plan backup and recovery'),
         children: [
-          OutlinedButton(
-            onPressed: () => _exportBackup(original: _restoreFailed),
-            child: Text(
-              _restoreFailed ? 'Export original data' : 'Export JSON backup',
-            ),
-          ),
-          OutlinedButton(
-            onPressed: _importBackup,
-            child: const Text('Import JSON backup'),
-          ),
-          OutlinedButton(
-            onPressed: _availabilityDialog,
-            child: const Text('Availability overrides'),
+          Wrap(
+            spacing: 8,
+            children: [
+              OutlinedButton(
+                onPressed: () => _exportBackup(original: _restoreFailed),
+                child: Text(
+                  _restoreFailed
+                      ? 'Export original data'
+                      : 'Export JSON backup',
+                ),
+              ),
+              OutlinedButton(
+                onPressed: _importBackup,
+                child: const Text('Import JSON backup'),
+              ),
+            ],
           ),
         ],
       ),
@@ -964,15 +1020,18 @@ class _PlannerPageState extends State<PlannerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'replan / 2.2',
+          'RePlan',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         actions: [
+          const AccountButton(),
           if (!_loading)
             IconButton(
-              onPressed: _importBackup,
-              tooltip: 'Import JSON backup',
-              icon: const Icon(Icons.file_open_outlined),
+              onPressed: _sessions.isEmpty || _exportingPdf
+                  ? null
+                  : _downloadPdf,
+              tooltip: 'Download PDF daily checklist',
+              icon: const Icon(Icons.picture_as_pdf_outlined),
             ),
           if (_restoreFailed)
             IconButton(

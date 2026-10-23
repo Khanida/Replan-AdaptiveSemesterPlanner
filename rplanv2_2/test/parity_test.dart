@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rplanv2_2/planner.dart';
 
 void main() {
-  final fixtures =
-      jsonDecode(File('../test-fixtures/scheduling.json').readAsStringSync())
-          as List;
+  final fixtures = jsonDecode(
+    File('../test-fixtures/scheduling.json').readAsStringSync(),
+  ) as List;
   for (final f in fixtures) {
     test('shared Dart/JavaScript contract: ${f['name']}', () {
       final courses = (f['courses'] as List)

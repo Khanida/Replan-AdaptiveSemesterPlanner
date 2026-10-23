@@ -26,8 +26,8 @@ test('Multi-course workloads and nearest exam are tracked independently',()=>{
     {name:'B',credit_hours:2,exam_date:E.addDays(ON,5),topics:['B1']}];
   const generated=E.generate(state),m=E.analyze(generated,ON);
   assert.equal(m.total,135);assert.equal(m.upcoming[0].name,'A');
-  assert.equal(total(generated.rows.filter(r=>r.Course==='A')),4500);
-  assert.equal(total(generated.rows.filter(r=>r.Course==='B'))+E.cents(m.unplaced),9000);
+  assert.equal(generated.workload.A.A1+generated.workload.A.A2,4500);
+  assert.equal(total(generated.rows)+E.cents(m.unplaced),13500);
   assert.ok(m.daily.every(d=>d.hours<=24));
 });
 test('Replanning preserves completed sessions and recovers the entire remaining curriculum',()=>{
@@ -66,7 +66,7 @@ test('Marking today missed recovers work within available capacity and keeps mis
 test('Completed work is counted in daily feasibility and no completed-only day is called pending',()=>{
   let state=plan(5);const ids=state.rows.filter(r=>r.Date===ON).map(r=>r.id);
   state=E.setStatus(state,ids,'Completed',ON);
-  const m=E.analyze(state,ON);assert.equal(m.leftToday,0);assert.equal(m.daily[0].hours,state.cap);assert.equal(m.daily[0].completed,state.cap);
+  const m=E.analyze(state,ON);assert.equal(m.leftToday,0);assert.equal(m.daily[0].hours,22.5);assert.equal(m.daily[0].completed,22.5);
 });
 test('CSV roundtrip preserves multiline, comma, quote, and formula-like names',()=>{
   const state=plan(4,['=Topic, "one"\ncontinued','Another']);

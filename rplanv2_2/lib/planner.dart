@@ -82,7 +82,7 @@ class PlanResult {
   final int unscheduled;
 }
 
-// Earliest deadline first, with credits breaking ties. All work is in minutes;
+// Daily course rotation, initially ordered by exam date and credits. All work is in minutes;
 // completed work consumes capacity and is never regenerated.
 PlanResult schedule(
   List<Course> courses,
@@ -116,37 +116,70 @@ PlanResult schedule(
       final credits = b.credits.compareTo(a.credits);
       return credits == 0 ? a.name.compareTo(b.name) : credits;
     });
-  var unscheduled = 0;
+  final remaining = <String, List<int>>{};
   for (final c in sorted) {
     final total = (c.credits * hoursPerCredit * 60).round();
-    for (var i = 0; i < c.topics.length; i++) {
+    remaining[c.id] = List.generate(c.topics.length, (i) {
       final target =
           c.topicMinutes[c.topics[i]] ??
           (total ~/ c.topics.length + (i < total % c.topics.length ? 1 : 0));
       final completed = sessions
           .where((s) => s.courseId == c.id && s.topic == c.topics[i])
           .fold(0, (int n, s) => n + s.minutes);
-      var left = max(0, target - completed);
-      var date = day(start);
-      while (left > 0 && date.isBefore(day(c.exam))) {
-        final key = dateLabel(date);
-        final capacity =
-            availability['dates']?[key] ??
-            availability['weekdays']?['${date.weekday % 7}'] ??
-            dailyMinutes;
-        final available = max(0, capacity - (used[key] ?? 0));
-        final amount = min(left, min(60, available));
-        if (amount > 0) {
-          sessions.add(Session(c.id, c.topics[i], date, amount));
-          used[key] = (used[key] ?? 0) + amount;
-          left -= amount;
-        } else {
-          date = DateTime(date.year, date.month, date.day + 1);
-        }
-      }
-      unscheduled += left;
-    }
+      return max(0, target - completed);
+    });
   }
+  var queue = [...sorted];
+  final end = sorted.fold(
+    day(start),
+    (DateTime end, c) => c.exam.isAfter(end) ? day(c.exam) : end,
+  );
+  if (end.difference(day(start)).inDays > 1827)
+    throw ArgumentError('Choose exams within five years of the plan start');
+  for (
+    var date = day(start);
+    date.isBefore(end);
+    date = DateTime(date.year, date.month, date.day + 1)
+  ) {
+    final key = dateLabel(date);
+    final capacity =
+        availability['dates']?[key] ??
+        availability['weekdays']?['${date.weekday % 7}'] ??
+        dailyMinutes;
+    var budget = max(0, capacity - (used[key] ?? 0));
+    queue = queue
+        .where(
+          (c) =>
+              date.isBefore(day(c.exam)) && remaining[c.id]!.any((m) => m > 0),
+        )
+        .toList();
+    final selected = {
+      for (final c in queue) c.id: remaining[c.id]!.indexWhere((m) => m > 0),
+    };
+    final served = <String>{};
+    var changed = true;
+    while (budget > 0 && changed) {
+      changed = false;
+      for (final c in queue) {
+        if (budget == 0) break;
+        final i = selected[c.id]!;
+        final amount = min(budget, min(60, remaining[c.id]![i]));
+        if (amount == 0) continue;
+        sessions.add(Session(c.id, c.topics[i], date, amount));
+        remaining[c.id]![i] -= amount;
+        budget -= amount;
+        served.add(c.id);
+        changed = true;
+      }
+    }
+    queue = [
+      ...queue.where((c) => !served.contains(c.id)),
+      ...queue.where((c) => served.contains(c.id)),
+    ];
+  }
+  final unscheduled = remaining.values
+      .expand((m) => m)
+      .fold(0, (int n, m) => n + m);
   sessions.sort((a, b) => a.date.compareTo(b.date));
   return PlanResult(sessions, unscheduled);
 }

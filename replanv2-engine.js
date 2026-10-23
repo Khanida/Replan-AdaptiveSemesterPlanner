@@ -82,44 +82,42 @@
     }
     return workload;
   }
-  function assignSlots(state, course, from, completed, missed, markRescheduled) {
-    const deadline = dayNumber(course.exam_date);
-    const start = dayNumber(from);
-    // A missed session releases its own time; it does not reserve capacity.
-    const dates = [];
-    if (deadline-start > 1827) throw Error(`${course.name}: choose an exam within five years of the plan start.`);
-    const used = new Map();
-    for (const row of [...completed, ...state.rows.filter(r=>!['Completed','Missed'].includes(r.Status))]) {
-      used.set(row.Date, (used.get(row.Date)||0) + cents(row['Target Hours']));
-    }
-    for (let d=start; d<deadline; d++) {
-      const date = new Date(d*86400000).toISOString().slice(0,10);
-      dates.push(date);
-    }
-    const topicWork = state.workload[course.name] || {};
-    const work = course.topics.map(topic => ({topic, remaining:Math.max(0,(topicWork[topic]||0) -
-      sum(completed.filter(r=>r.Course===course.name && r.Topic===topic),r=>cents(r['Target Hours'])))}));
-    const remaining = sum(work,w=>w.remaining);
-    if (!remaining || !dates.length) return [];
-    const rows = [];
-    let topicIndex = 0;
-    dates.forEach(date => {
-      let budget = Math.max(0, cents(capacityOn(state,date)) - (used.get(date)||0));
-      while (budget > 0 && topicIndex < work.length) {
-        const item = work[topicIndex];
-        if (!item.remaining) { topicIndex++; continue; }
-        const amount = Math.min(budget,item.remaining,100);
-        const source = missed.find(r=>r.Course===course.name && r.Topic===item.topic);
-        rows.push({id:String(state.nextId++), Day:daysBetween(state.start,date)+1, Date:date,Weekday:weekday(date),
-          Course:course.name, Topic:item.topic,'Topic Day':'','Target Hours':hours(amount),
-          Status:markRescheduled ? 'Rescheduled' : 'Pending',
-          Rescheduled_From:markRescheduled ? (source ? `Day ${source.Day} (${source.Date})` : 'Adaptive replan') : ''});
-        item.remaining -= amount; budget -= amount;
+  // Visit each course before giving any course another turn. Only its next
+  // unfinished topic is selected on a given day; long topics span sessions.
+  function assignSlots(state, from, completed, missed, rescheduled=new Set()) {
+    const start=dayNumber(from), used=new Map();
+    for(const row of completed)used.set(row.Date,(used.get(row.Date)||0)+cents(row['Target Hours']));
+    let queue=orderedCourses(state.courses).map(course=>({course,work:course.topics.map(topic=>({topic,
+      remaining:Math.max(0,(state.workload[course.name]?.[topic]||0)-sum(completed.filter(r=>r.Course===course.name&&r.Topic===topic),r=>cents(r['Target Hours'])))}))}));
+    const end=Math.max(start,...queue.map(j=>dayNumber(j.course.exam_date)));
+    if(end-start>1827)throw Error('Choose exams within five years of the plan start.');
+    const rows=[];
+    for(let d=start;d<end;d++){
+      const date=addDays(from,d-start);
+      let budget=Math.max(0,cents(capacityOn(state,date))-(used.get(date)||0));
+      queue=queue.filter(j=>j.course.exam_date>date&&j.work.some(w=>w.remaining>0));
+      const selected=queue.map(job=>({job,item:job.work.find(w=>w.remaining>0),served:false}));
+      let changed=true;
+      while(budget>0&&changed){
+        changed=false;
+        for(const turn of selected){
+          if(!budget)break;
+          const {job,item}=turn, amount=Math.min(budget,item.remaining,100);
+          if(!amount)continue;
+          const course=job.course,source=missed.find(r=>r.Course===course.name&&r.Topic===item.topic);
+          const mark=rescheduled.has(course.name);
+          rows.push({id:String(state.nextId++),Day:daysBetween(state.start,date)+1,Date:date,Weekday:weekday(date),
+            Course:course.name,Topic:item.topic,'Topic Day':'','Target Hours':hours(amount),
+            Status:mark?'Rescheduled':'Pending',Rescheduled_From:mark?(source?`Day ${source.Day} (${source.Date})`:'Adaptive replan'):''});
+          item.remaining-=amount;budget-=amount;turn.served=true;changed=true;
+        }
       }
-    });
-    for (const topic of course.topics) {
-      const sessions = rows.filter(r=>r.Topic===topic);
-      sessions.forEach((row,index)=>row['Topic Day']=`${index+1}/${sessions.length}`);
+      // Courses that got no time today get the first turns tomorrow.
+      queue=[...selected.filter(t=>!t.served),...selected.filter(t=>t.served)].map(t=>t.job);
+    }
+    for(const course of state.courses)for(const topic of course.topics){
+      const sessions=rows.filter(r=>r.Course===course.name&&r.Topic===topic);
+      sessions.forEach((r,i)=>r['Topic Day']=`${i+1}/${sessions.length}`);
     }
     return rows;
   }
@@ -132,10 +130,8 @@
     state.hoursPerCH=number(state.hoursPerCH,'Study hours per credit',1,100);
     state.availability=validateAvailability(state.availability);
     state.rows=[]; state.history=[]; state.workload=buildWorkload(state.courses,state.hoursPerCH); state.nextId=1;
-    for (const course of orderedCourses(state.courses)) {
-      if (course.exam_date <= state.start) throw Error(`${course.name}: the exam must be after the plan start.`);
-      state.rows.push(...assignSlots(state,course,state.start,[],[],false));
-    }
+    for(const course of state.courses)if(course.exam_date<=state.start)throw Error(`${course.name}: the exam must be after the plan start.`);
+    state.rows=assignSlots(state,state.start,[],[]);
     state.rows=sortRows(state.rows);
     return state;
   }
@@ -147,14 +143,8 @@
     for (const row of state.rows) if (row.Date < on && ['Pending','Rescheduled'].includes(row.Status)) row.Status='Missed';
     const completed=state.rows.filter(r=>r.Status==='Completed');
     const missed=state.rows.filter(r=>r.Status==='Missed');
-    const fresh=[];
-    state.rows=[];
-    for (const course of orderedCourses(state.courses)) {
-      const hasMissed=missed.some(r=>r.Course===course.name);
-      const hasRescheduled=input.rows.some(r=>r.Course===course.name && r.Status==='Rescheduled');
-      const allocated=assignSlots(state,course,on>state.start ? on : state.start,completed,missed,hasMissed||hasRescheduled);
-      fresh.push(...allocated); state.rows.push(...allocated);
-    }
+    const rescheduled=new Set(input.rows.filter(r=>['Missed','Rescheduled'].includes(r.Status)||r.Date<on&&r.Status==='Pending').map(r=>r.Course));
+    const fresh=assignSlots(state,on>state.start?on:state.start,completed,missed,rescheduled);
     state.rows=sortRows([...completed,...missed,...fresh]);
     const metrics=analyze(state,on);
     state.history.unshift({timestamp:new Date().toISOString(),reason,rescheduled:fresh.filter(r=>r.Status==='Rescheduled').length,

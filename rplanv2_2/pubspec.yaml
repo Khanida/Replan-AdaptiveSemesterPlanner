@@ -3,10 +3,15 @@ description: Replan native adaptive semester planner.
 publish_to: none
 version: 2.2.0+1
 environment:
-  sdk: '>=3.9.0 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.6.0
+  pdf: ^3.13.1
+  printing: ^5.15.1
+  supabase_flutter: ^2.18.3
   file_selector: ^1.1.0
   shared_preferences: ^2.5.6
 dev_dependencies:
@@ -14,3 +19,7 @@ dev_dependencies:
     sdk: flutter
 flutter:
   uses-material-design: true
+  assets:
+    - assets/replan-auth.json
+    - assets/fonts/NotoSans-Regular.ttf
+    - assets/fonts/NotoSansArabic-Regular.ttf

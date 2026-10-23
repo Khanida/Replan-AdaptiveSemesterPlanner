@@ -56,6 +56,22 @@ state. Tokens are not written to the planner's autosave or a token file. Restart
 or reload requires sign-in again. Plans continue saving locally; account sign-in
 does not implement cloud plan sync.
 
+## Flutter mobile and web authorization
+
+The Flutter client uses the same Supabase project through its bundled public configuration at `rplanv2_2/assets/replan-auth.json`. Keep this file aligned with the root `replan-auth.json` when changing projects. No provider secrets belong in either file.
+
+Before testing live login, add these entries in **Supabase → Authentication → URL Configuration → Redirect URLs**:
+
+- Native Android/iOS/macOS: `io.replan.semester://auth/callback`.
+- Local Flutter web: run `flutter run -d chrome --web-port 8766`, then allow the exact URL used by Flutter, such as `http://localhost:8766/` (or `http://127.0.0.1:8766/` if that is the host you open).
+- Deployment: allow the exact HTTPS base path of the Flutter web app.
+
+Android intent filters, iOS/macOS URL schemes, network permissions and PKCE callback filtering are included in the source. The default Flutter deep-link handler is disabled so Supabase's app-links handler can process authorization results. The app restricts callbacks to its expected scheme/host/path or web origin/path, and only accepts authorization codes/errors. The SDK exchanges codes using PKCE. Session tokens remain in memory; the temporary PKCE verifier uses the SDK's storage so a browser redirect or cold start can finish the flow. Sign-out clears the local account session without removing study plans.
+
+The project's public settings were checked on October 23, 2026: **Google enabled, Apple disabled**. Enable Apple in the Supabase provider dashboard and supply its Apple Developer credentials to make Apple login available. The app checks provider availability before opening authorization and explains unavailable providers. Provider dashboard configuration and the redirect allowlist cannot be changed by editing Flutter files alone.
+
+Verify successful Google login, denied consent, closed browser/timeouts, wrong callback origin/path, guest fallback, sign-out and an app cold-start callback. Then verify Apple after enabling it. Native testing requires Android SDK or Xcode and an actual emulator/device. These are account sign-ins only; Flutter does not request Google Calendar permission or implement cloud plan storage.
+
 ## References
 
 - [Supabase Google provider setup](https://supabase.com/docs/guides/auth/social-login/auth-google)
