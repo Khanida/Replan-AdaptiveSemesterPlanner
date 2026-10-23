@@ -23,3 +23,11 @@ test('web v2 makes daily PDF the primary export and keeps backups in recovery to
   assert.match(recovery,/data-action="backup"/);assert.match(recovery,/data-action="export-original"/);
   assert.match(html,/Continue with Google/);assert.doesNotMatch(html,/Continue with Apple/);
 });
+test('browser app has a restrictive script policy and bounds imported files',()=>{
+  assert.match(html,/Content-Security-Policy[^>]*default-src 'self'/);
+  assert.match(html,/object-src 'none'/);assert.match(html,/script-src 'self'/);
+  assert.match(html,/name="referrer" content="no-referrer"/);
+  const source=fs.readFileSync('replanv2.js','utf8');
+  assert.match(source,/files\.length>2/);
+  assert.match(source,/reduce\(\(total,file\)=>total\+file\.size,0\)>maxImportBytes/);
+});

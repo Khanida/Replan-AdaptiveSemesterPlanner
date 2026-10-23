@@ -59,6 +59,12 @@ Google Calendar uses a plan identity preserved in JSON backups and CSV metadata.
 
 `.ics` files are snapshots for manual import; repeated imports are not a managed two-way sync. Authorization and native file dialogs need the manual checks in [release validation](docs/RELEASE_CHECKLIST.md).
 
+## Security and privacy
+
+Browser imports are limited to 20 MB total and validated before replacing a plan. Flutter rejects backup files larger than 20 MB and validates their contents. The browser and Flutter web entry pages set a Content Security Policy that limits scripts to app assets, disables embedded objects, and prevents referrer data from being sent. Hosting these pages over HTTPS is recommended; configure response headers such as `frame-ancestors 'none'` and `X-Content-Type-Options: nosniff` at the web server because HTML meta policies cannot set them.
+
+Plans are stored on the device. JSON/CSV backups are not encrypted, so protect exported files like personal records. Sign-in is optional; Google Calendar receives only the events selected for sync. Supabase publishable keys may be included in client configuration; never put service-role keys, provider client secrets, or other private credentials in app assets.
+
 ## Desktop app v2_1
 
 ```sh

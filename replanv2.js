@@ -264,7 +264,8 @@
   async function importFiles(files){
     if(!files.length)return;
     try{
-      if(files.some(file=>file.size>15*1024*1024))throw Error('Choose plan files smaller than 15 MB.');
+      const maxImportBytes=20*1024*1024;
+      if(files.length>2||files.some(file=>!(/\.(csv|json)$/i.test(file.name)))||files.reduce((total,file)=>total+file.size,0)>maxImportBytes)throw Error('Choose one plan file, or a CSV and its metadata, totaling no more than 20 MB.');
       const csvFile=files.find(f=>/\.csv$/i.test(f.name));const jsonFiles=files.filter(f=>/\.json$/i.test(f.name));let next,inferred=false;
       if(csvFile){const companion=jsonFiles.find(f=>f.name===csvFile.name+'.meta.json')||jsonFiles.find(f=>/\.meta\.json$/i.test(f.name));
         const meta=companion?JSON.parse(await companion.text()):null;
