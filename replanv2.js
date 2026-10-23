@@ -51,11 +51,11 @@
     $('metrics').innerHTML=metrics.map(([title,value,caption])=>`<article class="metric"><h2 class="eyebrow">${esc(title)}</h2><strong class="metric-value">${esc(value)}</strong><p class="metric-caption">${esc(caption)}</p></article>`).join('');
   }
   function feasibility(m){
-    if(!state.rows.length)return '';
-    if(m.unplaced>0.005)return `<div class="notice danger"><strong>Deadline problem: ${fmt(m.unplaced)}h remains unscheduled.</strong>There are no available slots for some unfinished work before its exam. Review course scope or deadlines. Increasing the daily limit alone will not add calendar days.</div>`;
+    if(!m.total)return '';
+    if(m.unplaced>0.005)return `<div class="notice danger"><strong>Deadline problem: ${fmt(m.unplaced)}h remains unscheduled.</strong>Some unfinished work exceeds the available time before its exam. Increase available hours where realistic, reduce topic estimates, or review deadlines, then replan.</div>`;
     if(m.overdue)return `<div class="notice warning"><strong>${m.overdue} overdue session${m.overdue===1?'':'s'} need a new home.</strong>Use Adaptive Replan to redistribute unfinished work before each exam.</div>`;
-    if(m.overDays.length)return `<div class="notice warning"><strong>Your calendar declined the optimism.</strong>Required pace peaks at ${fmt(m.peak)}h/day, above your ${fmt(state.cap)}h daily limit on ${m.overDays.length} day${m.overDays.length===1?'':'s'}. Adjust available study time, workload estimates, or course scope.</div>`;
-    return `<div class="notice"><strong>Room to work. No miracle required.</strong>Peak workload is ${fmt(m.peak)}h/day within your ${fmt(state.cap)}h limit. Completed work counts toward each day’s load.</div>`;
+    if(m.overDays.length)return `<div class="notice warning"><strong>Your calendar declined the optimism.</strong>Recorded work exceeds the available hours on ${m.overDays.length} day${m.overDays.length===1?'':'s'}. Adjust available study time, workload estimates, or course scope.</div>`;
+    return `<div class="notice"><strong>Room to work. No miracle required.</strong>Every scheduled day fits its available hours. Peak workload is ${fmt(m.peak)}h/day. Completed work counts toward each day’s load.</div>`;
   }
   function progressPanel(){
     if(!state.courses.length)return '<p class="muted small">Your course progress will appear here.</p>';
@@ -66,7 +66,8 @@
   }
   function renderToday(m){
     let sessions='';const rows=m.todayRows;
-    if(!state.rows.length)sessions=empty('A clean slate. Suspiciously clean.','Add your courses and outlines, then generate a roadmap. Or try the demo to see a complete semester.');
+    if(!state.rows.length&&m.unplaced>0)sessions=empty('Your work needs more available time.','Review the unscheduled-hours warning below, adjust availability or topic estimates, then use Adaptive Replan.',false);
+    else if(!state.rows.length&&!m.total)sessions=empty('A clean slate. Suspiciously clean.','Add your courses and outlines, then generate a roadmap. Or try the demo to see a complete semester.');
     else if(!rows.length)sessions=empty('A calendar-approved breather.','There are no study sessions scheduled today. Check your roadmap for the next one.',false);
     else sessions=rows.map(row=>{
       const completed=row.Status==='Completed';const c=courseFor(row.Course);
@@ -123,15 +124,16 @@
   function renderDaily(m){
     const days=m.daily.filter(d=>$('daily-scope').value==='all'||d.date>=E.today());dailyPage=Math.max(0,Math.min(dailyPage,Math.ceil(days.length/75)-1));
     const chart=days.slice(0,14),peak=Math.max(state.cap,...chart.map(d=>d.hours),1);
-    $('workload-chart').innerHTML=chart.length?`<div class="chart-heading"><span>FIRST ${chart.length} ${$('daily-scope').value==='all'?'STUDY':'UPCOMING STUDY'} DAYS</span><span>Daily limit ${fmt(state.cap)}h · <span style="color:var(--amber)">Amber = over limit</span></span></div><div class="chart-days">${chart.map(d=>`<div class="chart-day ${d.hours>state.cap?'over':''} ${d.date===E.today()?'today':''}" aria-label="${esc(d.date)}: ${fmt(d.hours)} hours"><span>${fmt(d.hours)}h</span><div class="chart-column" style="--height:${Math.max(2,d.hours/peak*100)}px"></div><span>${displayDate(d.date)}</span></div>`).join('')}</div>`:empty('No workload here yet.','Generate a plan or switch to All days to see past sessions.',false);
-    $('daily-body').innerHTML=days.length?days.slice(dailyPage*75,(dailyPage+1)*75).map(d=>`<tr class="${d.date===E.today()?'today-row':''}"><td class="nowrap">${displayDate(d.date)}<span class="subline">${E.weekday(d.date)}</span></td><td>${esc([...new Set(d.rows.map(r=>r.Course))].join(', '))}</td><td>${fmt(d.hours)}h</td><td>${fmt(d.completed)}h</td><td>${d.pending} / ${d.rescheduled}</td><td>${d.missed}</td><td>${d.hours>state.cap?'<span class="status-badge missed">Over by '+fmt(d.hours-state.cap)+'h</span>':'<span class="status-badge completed">Within limit</span>'}</td></tr>`).join(''):'<tr><td colspan="7">No study days to display.</td></tr>';
+    $('workload-chart').innerHTML=chart.length?`<div class="chart-heading"><span>FIRST ${chart.length} ${$('daily-scope').value==='all'?'STUDY':'UPCOMING STUDY'} DAYS</span><span>Default limit ${fmt(state.cap)}h · <span style="color:var(--amber)">Amber = over limit</span></span></div><div class="chart-days">${chart.map(d=>`<div class="chart-day ${d.hours>E.capacityOn(state,d.date)?'over':''} ${d.date===E.today()?'today':''}" aria-label="${esc(d.date)}: ${fmt(d.hours)} hours"><span>${fmt(d.hours)}h</span><div class="chart-column" style="--height:${Math.max(2,d.hours/peak*100)}px"></div><span>${displayDate(d.date)}</span></div>`).join('')}</div>`:empty('No workload here yet.','Generate a plan or switch to All days to see past sessions.',false);
+    $('daily-body').innerHTML=days.length?days.slice(dailyPage*75,(dailyPage+1)*75).map(d=>`<tr class="${d.date===E.today()?'today-row':''}"><td class="nowrap">${displayDate(d.date)}<span class="subline">${E.weekday(d.date)}</span></td><td>${esc([...new Set(d.rows.map(r=>r.Course))].join(', '))}</td><td>${fmt(d.hours)}h</td><td>${fmt(d.completed)}h</td><td>${d.pending} / ${d.rescheduled}</td><td>${d.missed}</td><td>${d.hours>E.capacityOn(state,d.date)?'<span class="status-badge missed">Over by '+fmt(d.hours-E.capacityOn(state,d.date))+'h</span>':'<span class="status-badge completed">Within limit</span>'}</td></tr>`).join(''):'<tr><td colspan="7">No study days to display.</td></tr>';
     pagination('daily-pagination',days.length,dailyPage,'daily');
   }
   function renderInsights(m){
-    if(!state.rows.length){$('insights-content').innerHTML=empty('I need evidence before I roast the numbers.','Generate or import a plan to see your progress, workload diagnostics, and replan history.');return;}
-    const buffer=Math.max(0,state.cap-m.peak);
-    const actions=m.unplaced?['Some unfinished work has no available date before its exam. Review those course deadlines and topic scope.','A higher daily limit will only change warnings; edit the workload or deadline to change the plan.']:m.overDays.length?['Review your daily limit against the peak required pace. Only raise it if you have that time.','Reduce workload estimates or narrow course outlines where appropriate.','Prioritize the nearest exam. Keep breaks in your actual study routine.']:['Follow today’s check-in. Mark completed sessions so the plan stays honest.',`Your peak-day buffer is ${fmt(buffer)}h below the daily limit.`,'If you miss a session, use Adaptive Replan to bring unfinished work forward.'];
-    $('insights-content').innerHTML=`${feasibility(m)}<div class="insight-grid"><section class="panel"><p class="eyebrow">THE NUMBERS</p><h2>Semester diagnostic</h2><ul class="insight-list"><li>Estimated workload <strong>${fmt(m.total)}h</strong></li><li>Completed <strong>${fmt(m.done)}h · ${Math.round(m.progress)}%</strong></li><li>Remaining <strong>${fmt(m.remaining)}h</strong></li><li>Unscheduled <strong>${fmt(m.unplaced)}h</strong></li><li>Peak combined pace <strong>${fmt(m.peak)}h/day</strong></li><li>Average study-day pace <strong>${fmt(m.average)}h/day</strong></li><li>Over daily limit <strong>${m.overDays.length} days</strong></li></ul></section><section class="panel"><p class="eyebrow">DAMAGE CONTROL</p><h2>What to do next</h2><ol class="guide-list">${actions.map(a=>'<li>'+esc(a)+'</li>').join('')}</ol>${m.overDays.length?'<ul class="insight-list">'+m.overDays.slice(0,5).map(d=>`<li>${displayDate(d.date)}: <strong>${fmt(d.hours)}h</strong> (+${fmt(d.hours-state.cap)}h over)</li>`).join('')+'</ul>':''}</section></div><section class="panel timeline-panel"><p class="eyebrow">COURSE BY COURSE</p><h2>Roadmap breakdown</h2>${progressPanel()}</section><section class="panel timeline-panel"><p class="eyebrow">THE REPLANNING RECEIPTS</p><h2>Adaptive replan history</h2>${state.history.length?'<ol class="history-list">'+state.history.map(h=>`<li>${esc(h.reason)}<small>${esc(new Date(h.timestamp).toLocaleString())} · ${Number(h.rescheduled)||0} moved sessions · peak ${fmt(h.peak)}h/day${h.unplaced?' · '+fmt(h.unplaced)+'h unscheduled':''}</small></li>`).join('')+'</ol>':'<p class="muted small" style="margin-top:14px">No replanning events yet. Keep showing up.</p>'}</section>`;
+    if(!m.total){$('insights-content').innerHTML=empty('I need evidence before I roast the numbers.','Generate or import a plan to see your progress, workload diagnostics, and replan history.');return;}
+    const future=m.daily.filter(d=>d.date>=E.today());
+    const buffer=future.length?Math.max(0,Math.min(...future.map(d=>E.capacityOn(state,d.date)-d.hours))):0;
+    const actions=m.unplaced?['Some unfinished work has no available date before its exam. Review those course deadlines and topic scope.','Increase available hours only where realistic, then use Adaptive Replan to use the new capacity.']:m.overDays.length?['Review your daily limit against the peak required pace. Only raise it if you have that time.','Reduce workload estimates or narrow course outlines where appropriate.','Prioritize the nearest exam. Keep breaks in your actual study routine.']:['Follow today’s check-in. Mark completed sessions so the plan stays honest.',`Your smallest scheduled-day buffer is ${fmt(buffer)}h below its available capacity.`,'If you miss a session, use Adaptive Replan to bring unfinished work forward.'];
+    $('insights-content').innerHTML=`${feasibility(m)}<div class="insight-grid"><section class="panel"><p class="eyebrow">THE NUMBERS</p><h2>Semester diagnostic</h2><ul class="insight-list"><li>Estimated workload <strong>${fmt(m.total)}h</strong></li><li>Completed <strong>${fmt(m.done)}h · ${Math.round(m.progress)}%</strong></li><li>Remaining <strong>${fmt(m.remaining)}h</strong></li><li>Unscheduled <strong>${fmt(m.unplaced)}h</strong></li><li>Peak combined pace <strong>${fmt(m.peak)}h/day</strong></li><li>Average study-day pace <strong>${fmt(m.average)}h/day</strong></li><li>Over daily limit <strong>${m.overDays.length} days</strong></li></ul></section><section class="panel"><p class="eyebrow">DAMAGE CONTROL</p><h2>What to do next</h2><ol class="guide-list">${actions.map(a=>'<li>'+esc(a)+'</li>').join('')}</ol>${m.overDays.length?'<ul class="insight-list">'+m.overDays.slice(0,5).map(d=>`<li>${displayDate(d.date)}: <strong>${fmt(d.hours)}h</strong> (+${fmt(d.hours-E.capacityOn(state,d.date))}h over)</li>`).join('')+'</ul>':''}</section></div><section class="panel timeline-panel"><p class="eyebrow">COURSE BY COURSE</p><h2>Roadmap breakdown</h2>${progressPanel()}</section><section class="panel timeline-panel"><p class="eyebrow">THE REPLANNING RECEIPTS</p><h2>Adaptive replan history</h2>${state.history.length?'<ol class="history-list">'+state.history.map(h=>`<li>${esc(h.reason)}<small>${esc(new Date(h.timestamp).toLocaleString())} · ${Number(h.rescheduled)||0} moved sessions · peak ${fmt(h.peak)}h/day${h.unplaced?' · '+fmt(h.unplaced)+'h unscheduled':''}</small></li>`).join('')+'</ol>':'<p class="muted small" style="margin-top:14px">No replanning events yet. Keep showing up.</p>'}</section>`;
   }
   function applyTheme(){
     document.documentElement.dataset.roast=state.roast;
@@ -141,7 +143,7 @@
   function render(){
     applyTheme();
     const m=E.analyze(state);$('current-date').textContent=longDate(E.today()).toUpperCase();$('roast-message').textContent=E.roast(state);
-    $('roast-level').value=state.roast;$('plan-start').value=state.start;$('daily-cap').value=state.cap;$('hours-per-credit').value=state.hoursPerCH;
+    $('roast-level').value=state.roast;$('plan-start').value=state.start;$('daily-cap').value=state.cap;for(let i=0;i<7;i++)$('weekday-'+i).value=state.availability?.weekdays?.[i]??'';$('date-availability').value=Object.entries(state.availability?.dates||{}).map(([d,h])=>`${d} = ${h}`).join('\n');$('hours-per-credit').value=state.hoursPerCH;
     updateCourseSelectors();renderMetrics(m);renderToday(m);renderSchedule();renderCourses();renderDaily(m);renderInsights(m);switchView(view);
   }
   async function download(name,content,type){
@@ -170,16 +172,27 @@
       notify('PDF checklist downloaded. Print the A4 pages and check off each study session by hand.');
     }finally{savingPDF=false;button.disabled=false;button.textContent=label;}
   }
-  function metadata(){return {version:2,courses:state.courses,workload:state.workload,history:state.history,start:state.start,cap:state.cap,hoursPerCH:state.hoursPerCH};}
-  function readSettings(){return {start:$('plan-start').value,cap:E.number($('daily-cap').value,'Daily limit',0,24),hoursPerCH:E.number($('hours-per-credit').value,'Hours per credit',1,100)};}
+  function metadata(){return {version:2,planId:state.planId,courses:state.courses,workload:state.workload,history:state.history,start:state.start,cap:state.cap,hoursPerCH:state.hoursPerCH,availability:state.availability};}
+  function readAvailability(){
+    const availability={weekdays:{},dates:{}};
+    for(let i=0;i<7;i++)if($('weekday-'+i).value.trim())availability.weekdays[i]=E.number($('weekday-'+i).value,'Available hours',0,24);
+    for(const line of $('date-availability').value.split('\n').filter(t=>t.trim())){
+      const match=line.trim().match(/^(\d{4}-\d{2}-\d{2})\s*=\s*(.+)$/);
+      if(!match)throw Error('Enter each date exception as YYYY-MM-DD = hours.');
+      E.dayNumber(match[1]);availability.dates[match[1]]=E.number(match[2],'Available hours',0,24);
+    }
+    return E.validateAvailability(availability);
+  }
+  function readSettings(){return {availability:readAvailability(),start:$('plan-start').value,cap:E.number($('daily-cap').value,'Daily limit',0,24),hoursPerCH:E.number($('hours-per-credit').value,'Hours per credit',1,100)};}
   async function generate(){
     const settings=readSettings();E.dayNumber(settings.start);
     if(state.rows.length&&!await confirmAction('Regenerate the roadmap?','This replaces the existing schedule and clears recorded progress and replan history. Use Adaptive Replan to preserve completed work. Save a JSON backup first if needed.','Regenerate'))return;
     commit(E.generate({...state,...settings}),'Roadmap generated. Your calendar has done its part.');switchView('today');
   }
   async function adaptiveReplan(reason='Manual adaptive replan'){
-    state.cap=E.number($('daily-cap').value,'Daily limit',0,24);
-    commit(E.replan(state,E.today(),reason),'Plan rebuilt. Completed work preserved; unfinished topics moved before their exams.');
+    const settings=readSettings();
+    const next={...state,cap:settings.cap,availability:settings.availability};
+    commit(E.replan(next,E.today(),reason),'Plan rebuilt. Completed work preserved; unfinished topics moved before their exams.');
   }
   function openCourse(index=null){
     editing=index;const c=index===null?null:state.courses[index];$('course-form').reset();$('course-error').textContent='';
@@ -188,6 +201,7 @@
     const theme=c?E.THEMES.findIndex(t=>t.icon===c.icon&&t.color===c.color):-1;
     $('course-theme').innerHTML=E.THEMES.map((t,i)=>`<option value="${i}">${t.icon} ${t.name}</option>`).join('')+(c&&theme<0?'<option value="custom">Keep current badge</option>':'');
     $('course-theme').value=c&&theme<0?'custom':String(theme>=0?theme:state.courses.length%E.THEMES.length);
+    $('topic-hours').value=c?c.topics.map(t=>c.topicHours?.[t]??'').join('\n'):'';
     $('course-dialog').showModal();$('course-name').focus();
   }
   async function saveCourse(event){
@@ -197,22 +211,25 @@
       const theme=$('course-theme').value==='custom'?old:E.THEMES[Number($('course-theme').value)];
       const candidate={name:$('course-name').value.trim(),credit_hours:Number($('course-credit').value),exam_date:$('course-exam').value,
         topics:$('course-topics').value.split('\n').map(t=>t.trim()).filter(Boolean),icon:theme.icon,color:theme.color};
+      const estimates=$('topic-hours').value.split('\n');
+      if(estimates.length>candidate.topics.length&&estimates.slice(candidate.topics.length).some(t=>t.trim()))throw Error('Use one estimate per topic.');
+      candidate.topicHours=Object.fromEntries(candidate.topics.flatMap((t,i)=>estimates[i]?.trim()?[[t,E.number(estimates[i],'Topic hours',0.01,10000)]]:[]));
       const courses=E.clone(state.courses);if(editing===null)courses.push(candidate);else courses[editing]=candidate;
       E.validateCourses(courses);
       if(candidate.exam_date<=E.today())throw Error('Choose a future exam date for a new or edited course.');
       if(E.daysBetween(state.start,candidate.exam_date)>1827)throw Error('Choose an exam within five years of the plan start.');
       const affected=old?state.rows.filter(r=>r.Course===old.name):[];
       if(affected.some(r=>r.Status==='Completed')&&old.topics.some(t=>!candidate.topics.includes(t)&&affected.some(r=>r.Topic===t&&r.Status==='Completed')))throw Error('A removed or renamed topic has completed work. Keep that topic name to preserve its progress, or regenerate the roadmap first.');
-      const hasPlan=state.rows.length>0;
+      const hasPlan=Object.keys(state.workload||{}).length>0;
       if(hasPlan&&candidate.exam_date<=(state.start>E.today()?state.start:E.today()))throw Error('The exam must leave at least one future study day.');
       if(affected.some(r=>r.Status==='Completed'&&r.Date>=candidate.exam_date))throw Error('The new exam date is before recorded completed work. Choose a later exam date.');
       const next=E.clone(state);next.courses=courses;
       if(hasPlan){
-        const work=Object.fromEntries(candidate.topics.map(t=>[t,0]));const total=E.cents(candidate.credit_hours*state.hoursPerCH);
-        const completed=Object.fromEntries(candidate.topics.map(t=>[t,E.sum(affected.filter(r=>r.Topic===t&&r.Status==='Completed'),r=>E.cents(r['Target Hours']))]));
-        const already=E.sum(Object.values(completed),n=>n);if(already>total)throw Error('The new estimated workload is below already completed hours. Keep a higher credit estimate.');
-        const remaining=total-already,base=Math.floor(remaining/candidate.topics.length),extra=remaining%candidate.topics.length;
-        candidate.topics.forEach((t,i)=>work[t]=completed[t]+base+(i<extra?1:0));
+        const work=E.buildWorkload([candidate],state.hoursPerCH)[candidate.name];
+        for(const topic of candidate.topics){
+          const completed=E.sum(affected.filter(r=>r.Topic===topic&&r.Status==='Completed'),r=>E.cents(r['Target Hours']));
+          if(work[topic]<completed)throw Error('Topic estimate is below completed hours: '+topic);
+        }
         if(old&&old.name!==candidate.name)delete next.workload[old.name];Object.defineProperty(next.workload,candidate.name,{value:work,enumerable:true,writable:true,configurable:true});
         next.rows=next.rows.filter(r=>!old||r.Course!==old.name||candidate.topics.includes(r.Topic)).map(r=>old&&r.Course===old.name?{...r,Course:candidate.name}:r);
       }
@@ -269,11 +286,10 @@
   }
   function updateCalendarPreview(){
     try{const options=calendarOptions(),rows=E.calendarRows(state,options);$('calendar-preview').textContent=`${rows.length} session${rows.length===1?'':'s'} from ${options.courses.length} course${options.courses.length===1?'':'s'} will be included. ${options.allDay?'All-day events.':'Timed sessions follow your local time zone: '+Intl.DateTimeFormat().resolvedOptions().timeZone+'.'}`;
-      document.querySelector('[data-action="export-ics"]').disabled=!rows.length;$('google-sync').disabled=!rows.length||syncing;
+      document.querySelector('[data-action="export-ics"]').disabled=!rows.length;$('google-sync').disabled=(!rows.length&&options.scope!=='all')||syncing;
     }catch(error){$('calendar-preview').textContent=error.message;}
   }
   function openCalendar(){
-    if(!state.rows.length){notify('Generate or import a roadmap before exporting calendar sessions.');return;}
     $('calendar-error').textContent='';$('sync-progress').textContent='';
     const options=state.calendar;
     $('calendar-courses').innerHTML=state.courses.map((c,i)=>`<label><input type="checkbox" value="${i}" checked> ${esc(c.icon+' '+c.name)}</label>`).join('');
@@ -331,29 +347,31 @@
     let data={};try{data=await response.json();}catch(error){/* Some successful responses have no body. */}
     if(!response.ok){const error=Error(data.error?.message||`Calendar request failed (${response.status}).`);error.status=response.status;throw error;}return data;
   }
-  async function googleEventId(row){
-    const key=`no-replan-v2|${row.Course}|${row.Date}|${row.Topic}|${row['Topic Day']}`;
+  async function googleEventId(row,planId=state.planId){
+    const key=`no-replan-v2|${planId}|${row.Course}|${row.Date}|${row.Topic}|${row['Topic Day']}`;
     const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key));
     return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('');
   }
   async function syncCalendar(event){
     event.preventDefault();$('calendar-error').textContent='';let added=0;
     try{
-      const options=calendarOptions(),rows=E.calendarRows(state,options);if(!rows.length)throw Error('No matching sessions to sync.');
+      const planId=state.planId,options=calendarOptions(),rows=E.calendarRows(state,options);if(!rows.length&&options.scope!=='all')throw Error('No matching sessions to sync.');
       keepCalendarOptions(options);syncing=true;updateCalendarPreview();$('sync-progress').textContent='Waiting for Google sign-in and calendar permission…';
       const token=await calendarToken();
       $('sync-progress').textContent='Finding your study calendar…';
       let calendar=null,pageToken='';
       do{const list=await api(token,'/users/me/calendarList?maxResults=250'+(pageToken?'&pageToken='+encodeURIComponent(pageToken):''));calendar=(list.items||[]).find(c=>c.summary===options.name&&['owner','writer'].includes(c.accessRole));pageToken=list.nextPageToken||'';}while(!calendar&&pageToken);
+      if(!calendar&&!rows.length){$('sync-progress').textContent='No managed calendar or sessions to synchronize.';return;}
       if(!calendar)calendar=await api(token,'/calendars','POST',{summary:options.name,description:'Study milestones from Replan - Adaptive Semester Planner',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone});
       const events=E.calendarEvents(rows,options),path='/calendars/'+encodeURIComponent(calendar.id)+'/events';
-      for(let i=0;i<events.length;i++){
-        const id=await googleEventId(rows[i]);
-        try{await api(token,path,'POST',{...events[i],id});}
-        catch(error){if(error.status===409)await api(token,path+'/'+id,'PUT',events[i]);else throw error;}
-        added++;$('sync-progress').textContent=`Synced ${added} of ${events.length} sessions…`;
-      }
-      $('sync-progress').textContent=`Synced ${added} sessions to “${options.name}”. Matching sessions are updated on repeat sync.`;notify(`${added} Google Calendar sessions synced.`);
+      const result=await window.ReplanCalendar.sync(async(p,m,b)=>{
+        const response=await api(token,p,m,b);
+        if(m==='POST'||m==='PUT'){added++;$('sync-progress').textContent=`Uploaded ${added} study sessions…`;}
+        return response;
+      },path,rows,events,planId,row=>googleEventId(row,planId),options.scope==='all'&&options.courses.length===state.courses.length?'all':'selected');
+      added=result.synced;
+      $('sync-progress').textContent=`Synced ${added} sessions; removed ${result.removed} outdated events. Use All sessions with every course selected to reconcile the complete plan.`;
+      notify(`${added} Google Calendar sessions synced.`);
     }catch(error){if(error.status===401)googleSession=null;$('calendar-error').textContent=(added?`${added} sessions were synced before this stopped. `:'')+error.message;}
     finally{syncing=false;updateCalendarPreview();}
   }
@@ -401,7 +419,7 @@
   $('filter-search').addEventListener('input',()=>{page=0;renderSchedule();});
   $('timeline-course').addEventListener('change',renderTimeline);
   $('daily-cap').addEventListener('change',safe(()=>{
-    state.cap=E.number($('daily-cap').value,'Daily limit',0,24);persist();
+    state={...state,...readSettings()};persist();
     const m=E.analyze(state);renderMetrics(m);renderToday(m);renderDaily(m);renderInsights(m);$('roast-message').textContent=E.roast(state);
     notify('Daily limit updated. Workload warnings now use '+fmt(state.cap)+'h/day.');
   }));

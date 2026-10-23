@@ -1,0 +1,4 @@
+# Historical Tkinter editions and their regression tests only.
+pandas>=2.2,<4
+# Optional legacy Google Calendar integration:
+# python3 -m pip install google-api-python-client google-auth-oauthlib

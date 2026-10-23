@@ -1,0 +1,101 @@
+{
+  "version": 2,
+  "planId": "portable-contract",
+  "app": "Replan - Adaptive Semester Planner",
+  "courses": [
+    {
+      "name": "Math",
+      "credit_hours": 1.5,
+      "exam_date": "2026-10-27",
+      "topics": [
+        "Easy",
+        "Hard"
+      ],
+      "topicHours": {
+        "Easy": 0.5,
+        "Hard": 2.5
+      },
+      "color": "#54d997",
+      "icon": "💻"
+    }
+  ],
+  "rows": [
+    {
+      "id": "1",
+      "Day": 1,
+      "Date": "2026-10-23",
+      "Weekday": "Friday",
+      "Course": "Math",
+      "Topic": "Easy",
+      "Topic Day": "1/1",
+      "Target Hours": 0.5,
+      "Status": "Completed",
+      "Rescheduled_From": ""
+    },
+    {
+      "id": "2",
+      "Day": 1,
+      "Date": "2026-10-23",
+      "Weekday": "Friday",
+      "Course": "Math",
+      "Topic": "Hard",
+      "Topic Day": "1/3",
+      "Target Hours": 1,
+      "Status": "Pending",
+      "Rescheduled_From": ""
+    },
+    {
+      "id": "3",
+      "Day": 1,
+      "Date": "2026-10-23",
+      "Weekday": "Friday",
+      "Course": "Math",
+      "Topic": "Hard",
+      "Topic Day": "2/3",
+      "Target Hours": 0.5,
+      "Status": "Pending",
+      "Rescheduled_From": ""
+    },
+    {
+      "id": "4",
+      "Day": 2,
+      "Date": "2026-10-24",
+      "Weekday": "Saturday",
+      "Course": "Math",
+      "Topic": "Hard",
+      "Topic Day": "3/3",
+      "Target Hours": 1,
+      "Status": "Pending",
+      "Rescheduled_From": ""
+    }
+  ],
+  "workload": {
+    "Math": {
+      "Easy": 50,
+      "Hard": 250
+    }
+  },
+  "history": [],
+  "start": "2026-10-23",
+  "cap": 2,
+  "hoursPerCH": 1,
+  "roast": "Medium",
+  "variation": 0,
+  "nextId": 5,
+  "availability": {
+    "weekdays": {
+      "0": 0
+    },
+    "dates": {
+      "2026-10-24": 1
+    }
+  },
+  "calendar": {
+    "name": "RePlan Roast Study Roadmap",
+    "scope": "upcoming",
+    "allDay": false,
+    "hour": 18,
+    "reminder": 15,
+    "clientId": ""
+  }
+}

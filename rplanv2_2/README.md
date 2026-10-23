@@ -1,35 +1,43 @@
-# Replan 2.2 — Flutter
+# RePlan 2.2 — Flutter secondary client
 
-Native Flutter semester planner. Main interface: `lib/rplanv2_2.dart`.
-The existing Python and browser versions remain independent.
+The flagship is the [browser/desktop app](../README.md). This Flutter client shares scheduling contracts, and has its own storage. It can import browser/desktop JSON backups, and the browser/desktop edition can import Flutter JSON backups.
 
 ## Run
 
-Install a current stable Flutter SDK (Dart 3.9 or later) and its platform prerequisites. From this directory:
+Use Flutter with Dart 3.9 or later. Web and macOS runners are included:
 
-```bash
-flutter create --project-name rplanv2_2 --platforms=android,ios,web,macos .
-flutter pub get
+```sh
+flutter pub get --enforce-lockfile
 flutter run -d chrome
+# Or, with Xcode installed:
+flutter run -d macos
 ```
 
-The first command generates the platform runner folders that are not included in this source-only project. Keep the supplied `lib/`, `test/`, and `pubspec.yaml` files. Use `flutter devices` and `flutter run -d <device-id>` for another target. iOS and macOS require Xcode on macOS; Android requires the Android SDK.
+For Android/iOS development, generate the missing runners first with `flutter create --platforms=android,ios .`, then install the corresponding platform SDK. Mobile builds have not been verified by the automated desktop/web checks.
 
-```bash
-flutter analyze
+## Features and recovery
+
+- Multiple courses, credits, deadlines and topic outlines.
+- Earliest-deadline scheduling, shared daily capacity, sessions up to 60 minutes and explicit unscheduled work.
+- Optional per-topic estimates in minutes. Otherwise topics divide the credit-based estimate equally.
+- Weekday/date availability overrides, entered in minutes in Settings. Sunday is 0 and Saturday is 6; date entries override weekday entries. Zero means no study that day.
+- Completion tracking, roadmap filtering, explicit replanning from today, and an overdue reminder. Replanning preserves completed work; there is no automatic learning-performance model.
+- Local autosave using shared_preferences and **Export JSON backup / Import JSON backup** in Settings. Backups contain settings, availability, topics, sessions and completion.
+- Web exports download a JSON file. Desktop exports open Save As; cancellation leaves files untouched. On Android/iOS, export copies JSON to the clipboard; paste it into a file outside the app. Import uses the native file picker.
+- Restore validates the complete backup before replacing state and asks before replacement. Unsupported versions, malformed dates, invalid settings and unknown session references are rejected.
+- If autosave cannot be restored, autosave pauses. **Export original data** preserves the unreadable text; **Import JSON backup** restores a validated backup. Before replacing unreadable storage, the app also retains the original in a separate recovery key.
+
+Browser/desktop backups are converted to whole minutes and omit missed history; recovered active work is retained. Transferring back to the browser uses hundredths of an hour. Keep the original backup because small rounding differences are possible. Keep a copy outside app/site storage: uninstalling or clearing site data removes local storage. There is no cloud backup.
+
+Course changes use remove and add; removing requires confirmation and clears that course's progress. Browser PDF/CSV/calendar integration and coaching controls are not implemented here.
+
+## Checks
+
+```sh
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze --fatal-infos
 flutter test
+flutter build web --release
 ```
 
-## Features
-
-- Responsive dark charcoal and peach Material interface with Today, Courses, Roadmap, and Settings.
-- Multiple courses with credits, exam date, and one topic per line; three-course demo on an empty plan.
-- Daily capacity and study-hours-per-credit controls; future plan start date.
-- Study milestones up to 60 minutes, allocated strictly before exams by earliest deadline first. Credits break deadline ties. Topics share each course's estimated workload equally.
-- Session completion, topic/course search, and All/Today/Pending/Done filters.
-- Replan from today, preserving completed work and reporting work that cannot fit. Replanning is explicit; overdue work triggers a dashboard reminder.
-- Local autosave using shared_preferences. This app has separate storage from the Python/browser versions. Uninstalling the app or clearing site data removes its saved plan.
-
-This initial Flutter version does not include the browser edition's PDF/CSV/JSON exports, calendar integration, theme intensity controls, or existing-plan import. Course changes currently use remove and add; removing a course requires confirmation and clears its progress.
-
-Flutter/Dart were unavailable in the authoring environment, so the supplied tests and platform builds still need to be run with the Flutter SDK.
+Tests cover capacity, completion preservation, impossible deadlines, shared JavaScript/Dart fixtures, malformed backups, backup roundtrips and failed-restore autosave protection. Native file-dialog behavior and platform release builds require the [manual release checks](../docs/RELEASE_CHECKLIST.md).

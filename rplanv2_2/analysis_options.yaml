@@ -1,7 +1,8 @@
-include: package:flutter_lints/flutter.yaml
-
 analyzer:
   exclude:
     - build/**
     - macos/**
     - web/**
+  errors:
+    missing_return: error
+    dead_code: warning

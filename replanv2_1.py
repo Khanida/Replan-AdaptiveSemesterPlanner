@@ -18,7 +18,7 @@ from replan_auth import DesktopAuth
 
 APP_NAME = "Replan - Adaptive Semester Planner"
 APP_ROOT = Path(__file__).resolve().parent
-ASSETS = ("replanv2.html", "replanv2.css", "replanv2.js",
+ASSETS = ("replanv2.html", "replanv2.css", "replanv2.js", "replanv2-calendar.js",
           "replanv2-engine.js", "replanv2-pdf.js", "replanv2-auth.js")
 DEFAULT_PORT = 17863  # Stable origin keeps desktop autosave available between launches.
 

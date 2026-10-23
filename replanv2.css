@@ -321,7 +321,9 @@ nav{flex-direction:row;overflow:auto;gap:5px;padding-bottom:6px}
 #settings-form{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:8px 14px;margin-top:4px}
 #settings-form>label{grid-column:1}
 #settings-form>input{grid-column:1}
-#settings-form .field-grid{grid-column:2;grid-row:1/3;gap:8px}
+#settings-form>.field-grid{grid-column:2;grid-row:1/3;gap:8px}
+#settings-form>details{grid-column:1/-1}
+#settings-form>details .field-grid{grid-template-columns:1fr 1fr;gap:8px}
 #settings-form .field-help{grid-column:1/-1;margin:2px 0 4px}
 #settings-form .button{grid-column:1/-1}
 .setup-card>.field-help{margin-bottom:0}

@@ -44,48 +44,71 @@
       dayNumber(course.exam_date);
       const theme = THEMES[i % THEMES.length];
       return { name, credit_hours:number(course.credit_hours,'Credit hours',0.1,30), exam_date:course.exam_date,
-        topics, color:/^#[0-9a-f]{6}$/i.test(course.color) ? course.color : theme.color,
+        topics, topicHours:Object.fromEntries(topics.filter(t=>Object.hasOwn(course.topicHours||{},t)).map(t=>[t,number(course.topicHours[t],'Topic hours',0,10000)])), color:/^#[0-9a-f]{6}$/i.test(course.color) ? course.color : theme.color,
         icon:String(course.icon || theme.icon).slice(0,12) };
     });
   }
   function emptyState(on = today()) {
-    return {version:2, app:'Replan - Adaptive Semester Planner', courses:[], rows:[], workload:{}, history:[],
+    return {version:2, planId:globalThis.crypto?.randomUUID?.()||('plan-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)), app:'Replan - Adaptive Semester Planner', courses:[], rows:[], workload:{}, history:[],
       start:on, cap:5, hoursPerCH:45, roast:'Medium', variation:0, nextId:1,
+      availability:{weekdays:{},dates:{}},
       calendar:{name:'RePlan Roast Study Roadmap',scope:'upcoming',allDay:false,hour:18,reminder:15,clientId:''}};
+  }
+  function orderedCourses(courses) {
+    return [...courses].sort((a,b)=>a.exam_date.localeCompare(b.exam_date)||b.credit_hours-a.credit_hours||a.name.localeCompare(b.name));
+  }
+  function capacityOn(state,date) {
+    const availability=state.availability||{};
+    return availability.dates?.[date] ?? availability.weekdays?.[new Date(dayNumber(date)*86400000).getUTCDay()] ?? state.cap;
+  }
+  function validateAvailability(value={}) {
+    if(!value || typeof value!=='object' || Array.isArray(value))throw Error('Invalid availability.');
+    const result={weekdays:{},dates:{}};
+    for(const kind of ['weekdays','dates']) {
+      if(value[kind]!=null && (typeof value[kind]!=='object'||Array.isArray(value[kind])))throw Error('Invalid availability.');
+      for(const [key,h] of Object.entries(value[kind]||{})) {
+        if(kind==='dates')dayNumber(key);else if(!/^[0-6]$/.test(key))throw Error('Weekdays must use 0 (Sunday) through 6 (Saturday).');
+        result[kind][key]=number(h,'Available hours',0,24);
+      }
+    }
+    return result;
   }
   function split(total, count) { return Array.from({length:count},(_,i)=>Math.floor(total/count)+(i<total%count?1:0)); }
   function buildWorkload(courses, rate) {
     const workload = {};
     for (const course of courses) {
       const totals = split(cents(course.credit_hours * rate), course.topics.length);
-      Object.defineProperty(workload,course.name,{value:Object.fromEntries(course.topics.map((topic,i)=>[topic,totals[i]])),enumerable:true,writable:true,configurable:true});
+      Object.defineProperty(workload,course.name,{value:Object.fromEntries(course.topics.map((topic,i)=>[topic,Object.hasOwn(course.topicHours||{},topic)?cents(course.topicHours[topic]):totals[i]])),enumerable:true,writable:true,configurable:true});
     }
     return workload;
   }
   function assignSlots(state, course, from, completed, missed, markRescheduled) {
     const deadline = dayNumber(course.exam_date);
     const start = dayNumber(from);
-    const skip = new Set([...completed,...missed].filter(r=>r.Course===course.name).map(r=>r.Date));
+    // A missed session releases its own time; it does not reserve capacity.
     const dates = [];
     if (deadline-start > 1827) throw Error(`${course.name}: choose an exam within five years of the plan start.`);
+    const used = new Map();
+    for (const row of [...completed, ...state.rows.filter(r=>!['Completed','Missed'].includes(r.Status))]) {
+      used.set(row.Date, (used.get(row.Date)||0) + cents(row['Target Hours']));
+    }
     for (let d=start; d<deadline; d++) {
       const date = new Date(d*86400000).toISOString().slice(0,10);
-      if (!skip.has(date)) dates.push(date);
+      dates.push(date);
     }
     const topicWork = state.workload[course.name] || {};
     const work = course.topics.map(topic => ({topic, remaining:Math.max(0,(topicWork[topic]||0) -
       sum(completed.filter(r=>r.Course===course.name && r.Topic===topic),r=>cents(r['Target Hours'])))}));
     const remaining = sum(work,w=>w.remaining);
     if (!remaining || !dates.length) return [];
-    const daily = split(remaining, dates.length);
     const rows = [];
     let topicIndex = 0;
-    dates.forEach((date,index) => {
-      let budget = daily[index];
+    dates.forEach(date => {
+      let budget = Math.max(0, cents(capacityOn(state,date)) - (used.get(date)||0));
       while (budget > 0 && topicIndex < work.length) {
         const item = work[topicIndex];
         if (!item.remaining) { topicIndex++; continue; }
-        const amount = Math.min(budget,item.remaining);
+        const amount = Math.min(budget,item.remaining,100);
         const source = missed.find(r=>r.Course===course.name && r.Topic===item.topic);
         rows.push({id:String(state.nextId++), Day:daysBetween(state.start,date)+1, Date:date,Weekday:weekday(date),
           Course:course.name, Topic:item.topic,'Topic Day':'','Target Hours':hours(amount),
@@ -107,8 +130,9 @@
     if (!state.courses.length) throw Error('Add at least one course before generating a plan.');
     dayNumber(state.start); state.cap=number(state.cap,'Daily limit',0,24);
     state.hoursPerCH=number(state.hoursPerCH,'Study hours per credit',1,100);
+    state.availability=validateAvailability(state.availability);
     state.rows=[]; state.history=[]; state.workload=buildWorkload(state.courses,state.hoursPerCH); state.nextId=1;
-    for (const course of state.courses) {
+    for (const course of orderedCourses(state.courses)) {
       if (course.exam_date <= state.start) throw Error(`${course.name}: the exam must be after the plan start.`);
       state.rows.push(...assignSlots(state,course,state.start,[],[],false));
     }
@@ -117,15 +141,19 @@
   }
   function replan(input, on=today(), reason='Adaptive replan') {
     const state=clone(input); dayNumber(on);
-    if (!state.rows.length) throw Error('Generate or import a plan before replanning.');
+    state.availability=validateAvailability(state.availability);
+    state.cap=number(state.cap,'Daily limit',0,24);
+    if (!state.courses.length || !Object.keys(state.workload||{}).length) throw Error('Generate or import a plan before replanning.');
     for (const row of state.rows) if (row.Date < on && ['Pending','Rescheduled'].includes(row.Status)) row.Status='Missed';
     const completed=state.rows.filter(r=>r.Status==='Completed');
     const missed=state.rows.filter(r=>r.Status==='Missed');
     const fresh=[];
-    for (const course of state.courses) {
+    state.rows=[];
+    for (const course of orderedCourses(state.courses)) {
       const hasMissed=missed.some(r=>r.Course===course.name);
-      const hasRescheduled=state.rows.some(r=>r.Course===course.name && r.Status==='Rescheduled');
-      fresh.push(...assignSlots(state,course,on>state.start ? on : state.start,completed,missed,hasMissed||hasRescheduled));
+      const hasRescheduled=input.rows.some(r=>r.Course===course.name && r.Status==='Rescheduled');
+      const allocated=assignSlots(state,course,on>state.start ? on : state.start,completed,missed,hasMissed||hasRescheduled);
+      fresh.push(...allocated); state.rows.push(...allocated);
     }
     state.rows=sortRows([...completed,...missed,...fresh]);
     const metrics=analyze(state,on);
@@ -162,7 +190,7 @@
     const unplaced=Math.max(0,total-done-pending);
     const future=daily.filter(d=>d.date>=on);
     const peak=Math.max(0,...future.map(d=>d.hours));
-    const overDays=future.filter(d=>d.hours>state.cap+0.001);
+    const overDays=future.filter(d=>d.hours>capacityOn(state,d.date)+0.001);
     const upcoming=state.courses.filter(c=>c.exam_date>=on).sort((a,b)=>a.exam_date.localeCompare(b.exam_date));
     const todayRows=state.rows.filter(r=>r.Date===on);
     const leftToday=sum(todayRows.filter(r=>!['Completed','Missed'].includes(r.Status)),r=>r['Target Hours']);
@@ -193,7 +221,7 @@
   function roast(state,on=today()) {
     const m=analyze(state,on); let kind='empty',action='Add courses and generate a plan.';
     const next=m.todayRows.find(r=>!['Completed','Missed'].includes(r.Status));
-    if(state.rows.length) {
+    if(state.rows.length || m.total>0) {
       if(m.remaining<0.005) { kind='complete'; action='All scheduled work is complete. Take a break.'; }
       else if(m.unplaced>0.005) { kind='overload'; action=`${m.unplaced.toFixed(1)}h cannot fit before the exam dates. Review scope and deadlines.`; }
       else if(m.overdue) { kind='overdue'; action='Use Adaptive Replan to rebuild unfinished sessions.'; }
@@ -246,17 +274,52 @@
     if(metadata?.cap!=null)state.cap=metadata.cap;
     if(metadata?.hoursPerCH!=null)state.hoursPerCH=metadata.hoursPerCH;
     if(metadata?.history)state.history=metadata.history;
+    if(metadata?.availability)state.availability=metadata.availability;
+    if(metadata?.planId)state.planId=metadata.planId;
     for(const course of state.courses) {
       if(!Object.hasOwn(state.workload,course.name)) Object.defineProperty(state.workload,course.name,{value:Object.fromEntries(course.topics.map(topic=>[topic,
         sum(state.rows.filter(r=>r.Course===course.name&&r.Topic===topic&&r.Status!=='Missed'),r=>cents(r['Target Hours']))])),enumerable:true,writable:true,configurable:true});
     }
     return validateState(state);
   }
+  function fromFlutterBackup(input) {
+    if(input.version!==1||!Array.isArray(input.courses)||!Array.isArray(input.sessions))throw Error('Invalid Flutter backup.');
+    const state=emptyState(String(input.start).slice(0,10));
+    state.cap=number(input.daily,'Daily minutes',0,1440)/60;
+    state.hoursPerCH=number(input.hours,'Hours per credit',1,100);
+    const names=new Map();
+    state.courses=input.courses.map(c=>{
+      if(typeof c.id!=='string'||names.has(c.id))throw Error('Invalid or duplicate course identity.');
+      names.set(c.id,c.name);
+      const course={name:c.name,credit_hours:c.credits,exam_date:String(c.exam).slice(0,10),topics:c.topics,topicHours:{}};
+      for(const [topic,minutes] of Object.entries(c.topicMinutes||{}))course.topicHours[topic]=number(minutes,'Topic minutes',0,600000)/60;
+      return course;
+    });
+    state.courses=validateCourses(state.courses);
+    state.workload=buildWorkload(state.courses,state.hoursPerCH);
+    state.rows=input.sessions.map((r,i)=>{
+      if(typeof r.done!=='boolean'||!names.has(r.courseId))throw Error('Invalid Flutter session.');
+      return {id:String(i+1),Course:names.get(r.courseId),Topic:r.topic,Date:String(r.date).slice(0,10),
+        'Target Hours':number(r.minutes,'Session minutes',1,1440)/60,Status:r.done?'Completed':'Pending','Topic Day':'',Rescheduled_From:''};
+    });
+    // Whole minutes need rounding when converted to the browser's hundredth-hour model.
+    for(const c of state.courses)for(const t of c.topics){
+      const active=sum(state.rows.filter(r=>r.Course===c.name&&r.Topic===t),r=>cents(r['Target Hours']));
+      state.workload[c.name][t]=Math.max(state.workload[c.name][t],active);
+    }
+    const availability=input.availability||{};
+    state.availability=Object.fromEntries(['weekdays','dates'].map(k=>[k,Object.fromEntries(Object.entries(availability[k]||{}).map(([d,m])=>[d,number(m,'Available minutes',0,1440)/60]))]));
+    if(input.planId)state.planId=input.planId;
+    return state;
+  }
   function validateState(input) {
+    if(input?.app==='Replan Flutter')input=fromFlutterBackup(input);
     if(!input || typeof input!=='object'||!Array.isArray(input.courses)||!Array.isArray(input.rows)||typeof input.start!=='string')throw Error('This is not a complete RePlan plan. Open the CSV together with its metadata, or choose a full JSON backup.');
     const state={...emptyState(),...clone(input)};
     state.app='Replan - Adaptive Semester Planner';
+    if(typeof state.planId!=='string'||!/^[-a-zA-Z0-9]{1,100}$/.test(state.planId))throw Error('Invalid plan identity.');
     state.courses=validateCourses(state.courses); dayNumber(state.start);
+    state.availability=validateAvailability(state.availability);
     state.cap=number(state.cap,'Daily limit',0,24);state.hoursPerCH=number(state.hoursPerCH,'Study hours per credit',1,100);
     if(!Array.isArray(state.rows)||state.rows.length>100000)throw Error('Invalid or oversized schedule.');
     let next=1;
@@ -277,6 +340,18 @@
       if(!totals) {Object.defineProperty(state.workload,c.name,{value:Object.fromEntries(c.topics.map(t=>[t,
         sum(state.rows.filter(r=>r.Course===c.name&&r.Topic===t&&r.Status!=='Missed'),r=>cents(r['Target Hours']))])),enumerable:true,writable:true,configurable:true});}
       else for(const topic of c.topics) number(totals[topic], 'Topic workload',0,100000000);
+    }
+    const knownCourses=new Set(state.courses.map(c=>c.name));
+    for(const [name,topics] of Object.entries(state.workload)){
+      if(!knownCourses.has(name)||!topics||typeof topics!=='object'||Array.isArray(topics))throw Error('Invalid workload course metadata.');
+      const knownTopics=new Set(state.courses.find(c=>c.name===name).topics);
+      for(const [topic,value] of Object.entries(topics)){
+        if(!knownTopics.has(topic)||!Number.isSafeInteger(value)||value<0)throw Error('Invalid topic workload metadata.');
+      }
+    }
+    for(const course of state.courses)for(const topic of course.topics){
+      const active=sum(state.rows.filter(r=>r.Course===course.name&&r.Topic===topic&&r.Status!=='Missed'),r=>cents(r['Target Hours']));
+      if(active>state.workload[course.name][topic])throw Error('Session hours exceed the topic workload.');
     }
     if(!['Off','Mild','Medium','Extra spicy'].includes(state.roast))state.roast='Medium';
     state.variation=Number.isSafeInteger(state.variation)&&state.variation>=0?state.variation:0;
@@ -299,6 +374,7 @@
   function calendarRows(state, options, on=today()) {
     const names=new Set(options.courses||state.courses.map(c=>c.name));
     return sortRows(clone(state.rows.filter(r=>names.has(r.Course)&&
+      r.Status!=='Missed'&&
       (options.scope==='selected'?(options.ids||[]).includes(r.id):options.scope==='all'||(r.Date>=on&&!['Completed','Missed'].includes(r.Status))))));
   }
   function eventTimes(rows, options) {
@@ -343,7 +419,7 @@
     return lines.map(line=>{let part='',result=[];for(const char of line){if(new TextEncoder().encode(part+char).length>75){result.push(part);part=' ';}part+=char;}result.push(part);return result.join('\r\n');}).join('\r\n')+'\r\n';
   }
   const api={STATUSES,THEMES,COLUMNS,clone,sum,cents,hours,today,dayNumber,addDays,daysBetween,weekday,number,validateCourses,
-    emptyState,generate,replan,setStatus,analyze,topicPeriods,roast,toCSV,parseCSV,importCSV,validateState,calendarRows,calendarEvents,toICS};
+    buildWorkload,capacityOn,validateAvailability,emptyState,generate,replan,setStatus,analyze,topicPeriods,roast,toCSV,parseCSV,importCSV,validateState,calendarRows,calendarEvents,toICS};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else root.ReplanEngine=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

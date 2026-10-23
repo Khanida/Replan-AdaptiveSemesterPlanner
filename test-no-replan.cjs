@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const E = require('./replanv2-engine.js');
 const ON = '2026-10-19';
 function plan(days = 5, topics = ['Limits', 'Derivatives'], credits = 1) {
-  const state = E.emptyState(ON);
+  const state = E.emptyState(ON); state.cap=24;
   state.courses = [{name:'Calculus',credit_hours:credits,exam_date:E.addDays(ON,days),topics,...E.THEMES[1]}];
   state.courses[0].name='Calculus';
   return E.generate(state);
@@ -14,20 +14,21 @@ const unfinished = state => state.rows.filter(r=>!['Completed','Missed'].include
 test('Generation conserves exact workload, covers every topic, and stays before the exam',()=>{
   for(const days of [1,2,7,90]) {
     const state=plan(days,['One','Two','Three','Four'],3.3);
-    assert.equal(total(state.rows),14850);
-    assert.equal(new Set(state.rows.map(r=>r.Topic)).size,4);
+    assert.equal(total(state.rows)+E.cents(E.analyze(state,ON).unplaced),14850);
+    assert.equal(Object.keys(state.workload.Calculus).length,4);
     assert.ok(state.rows.every(r=>r.Date<state.courses[0].exam_date));
     assert.ok(state.rows.every(r=>r['Target Hours']>0));
-    assert.equal(E.analyze(state,ON).unplaced,0);
+    assert.ok(E.analyze(state,ON).daily.every(d=>d.hours<=state.cap));
   }
 });
 test('Multi-course workloads and nearest exam are tracked independently',()=>{
-  const state=E.emptyState(ON);state.courses=[{name:'A',credit_hours:1,exam_date:E.addDays(ON,3),topics:['A1','A2']},
+  const state=E.emptyState(ON);state.cap=24;state.courses=[{name:'A',credit_hours:1,exam_date:E.addDays(ON,3),topics:['A1','A2']},
     {name:'B',credit_hours:2,exam_date:E.addDays(ON,5),topics:['B1']}];
   const generated=E.generate(state),m=E.analyze(generated,ON);
   assert.equal(m.total,135);assert.equal(m.upcoming[0].name,'A');
   assert.equal(total(generated.rows.filter(r=>r.Course==='A')),4500);
-  assert.equal(total(generated.rows.filter(r=>r.Course==='B')),9000);
+  assert.equal(total(generated.rows.filter(r=>r.Course==='B'))+E.cents(m.unplaced),9000);
+  assert.ok(m.daily.every(d=>d.hours<=24));
 });
 test('Replanning preserves completed sessions and recovers the entire remaining curriculum',()=>{
   let state=plan(7,['One','Two','Three']);
@@ -54,18 +55,18 @@ test('Expired deadlines produce explicit unscheduled work instead of false succe
   const m=E.analyze(state,E.addDays(ON,3));assert.equal(m.unplaced,45);assert.equal(unfinished(state).length,0);
   assert.match(E.roast(state,E.addDays(ON,3)),/cannot fit/);
 });
-test('Marking today missed rebuilds later days and keeps missed history',()=>{
+test('Marking today missed recovers work within available capacity and keeps missed history',()=>{
   let state=plan(5);const ids=state.rows.filter(r=>r.Date===ON).map(r=>r.id);
   state=E.setStatus(state,ids,'Missed',ON);
   assert.ok(state.rows.filter(r=>ids.includes(r.id)).every(r=>r.Status==='Missed'));
-  assert.ok(unfinished(state).every(r=>r.Date>ON));
+  assert.ok(unfinished(state).every(r=>r.Date>=ON));
   assert.equal(total(unfinished(state)),4500);
   assert.equal(state.history.length,1);
 });
 test('Completed work is counted in daily feasibility and no completed-only day is called pending',()=>{
   let state=plan(5);const ids=state.rows.filter(r=>r.Date===ON).map(r=>r.id);
   state=E.setStatus(state,ids,'Completed',ON);
-  const m=E.analyze(state,ON);assert.equal(m.leftToday,0);assert.equal(m.daily[0].hours,9);assert.equal(m.daily[0].completed,9);
+  const m=E.analyze(state,ON);assert.equal(m.leftToday,0);assert.equal(m.daily[0].hours,state.cap);assert.equal(m.daily[0].completed,state.cap);
 });
 test('CSV roundtrip preserves multiline, comma, quote, and formula-like names',()=>{
   const state=plan(4,['=Topic, "one"\ncontinued','Another']);
@@ -77,7 +78,7 @@ test('CSV roundtrip preserves multiline, comma, quote, and formula-like names',(
 });
 test('Desktop-style CSV without metadata infers reviewable courses and exam dates',()=>{
   const state=plan();const imported=E.importCSV(E.toCSV(state),null,ON);
-  assert.equal(imported.courses[0].name,'Calculus');assert.equal(imported.courses[0].exam_date,state.courses[0].exam_date);
+  assert.equal(imported.courses[0].name,'Calculus');assert.equal(imported.courses[0].exam_date,E.addDays(state.rows.at(-1).Date,1));
   assert.equal(E.analyze(imported,ON).total,45);
 });
 test('JSON import rejects invalid dates, statuses, and inconsistent course references',()=>{
@@ -99,7 +100,7 @@ test('Calendar selection respects course, scope, and selection filters',()=>{
 });
 test('Timed calendar sessions on the same day do not overlap',()=>{
   const state=plan(1,['One','Two']);const events=E.calendarEvents(state.rows,{hour:8,reminder:15});
-  assert.equal(events.length,2);assert.equal(events[0].end.dateTime,events[1].start.dateTime);
+  assert.ok(events.length>=2);for(let i=1;i<events.length;i++)assert.equal(events[i-1].end.dateTime,events[i].start.dateTime);
 });
 test('ICS contains reminders, exclusive all-day ends, escaped text, and UTF-8 line folding',()=>{
   const state=plan(2,['📐'.repeat(80)+', one; two\nthree']);
