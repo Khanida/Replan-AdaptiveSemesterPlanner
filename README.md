@@ -31,7 +31,7 @@ Keep the HTML, CSS, `replanv2.js`, `replanv2-engine.js`, `replanv2-calendar.js`,
 - Explicit unscheduled workload when remaining time cannot accommodate all topics.
 - Search, filters, progress, topic timelines, workload views and configurable local coaching.
 - Local autosave, full JSON backup/import, CSV plus metadata, printable PDF checklists and `.ics` calendar export.
-- Optional Google/Apple account sign-in and Google Calendar synchronization. Accounts do not upload or back up the plan.
+- Optional Google account sign-in and Google Calendar synchronization. Accounts do not upload or back up the plan.
 
 ## Scheduling contract
 
@@ -65,7 +65,7 @@ Desktop storage is a separate `.replanv2-desktop/` profile. Its stable localhost
 
 ## Mobile app v2_1
 
-Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides a **Download PDF daily checklist** button plus optional Google/Apple sign-in. JSON backup/import remains under **Plan backup and recovery** in Settings. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
+Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides a **Download PDF daily checklist** button plus optional Google sign-in. JSON backup/import remains under **Plan backup and recovery** in Settings. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
 
 ## Checks
 

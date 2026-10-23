@@ -308,7 +308,7 @@
     const account=accountSession?.profile;
     $('google-account').textContent=account ? (account.name||account.email||'Account') : 'Sign in';
     $('google-profile').hidden=!account;
-    $('google-profile').textContent=account ? `Signed in with ${accountSession.provider==='apple'?'Apple':'Google'} as ${account.email||account.name||'your account'}.` : '';
+    $('google-profile').textContent=account ? `Signed in with Google as ${account.email||account.name||'your account'}.` : '';
     $('google-signout').hidden=!accountSession;
     $('google-sync').textContent='Add tasks to Google Calendar';
   }

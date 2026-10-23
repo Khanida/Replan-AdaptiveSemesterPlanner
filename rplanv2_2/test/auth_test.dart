@@ -103,7 +103,7 @@ void main() {
       await tester.tap(find.text('Sign in'));
       await tester.pumpAndSettle();
       expect(find.text('Continue with Google'), findsOneWidget);
-      expect(find.text('Continue with Apple'), findsOneWidget);
+      expect(find.text('Continue with Apple'), findsNothing);
       await tester.tap(find.text('Continue with Google'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Sign-in is not configured'), findsOneWidget);

@@ -53,10 +53,10 @@ test('browser sign-in verifies PKCE and ignores a forged callback origin', async
   assert.equal(env.popup.closed, true);
 });
 
-test('Apple and Google Calendar use distinct scopes', async () => {
-  const apple = environment();
-  assert.equal((await apple.window.ReplanAuth.signIn('apple')).provider, 'apple');
-  assert.equal(apple.request.searchParams.has('scopes'), false);
+test('Apple is rejected and Google Calendar requests its own scope', async () => {
+  const env = environment();
+  await assert.rejects(env.window.ReplanAuth.signIn('apple'), /Google/);
+  assert.equal(env.calls.length, 0);
   const calendar = environment();
   assert.equal((await calendar.window.ReplanAuth.signIn('google', true)).calendarToken, 'calendar-token');
   assert.ok(calendar.request.searchParams.get('scopes').includes('/auth/calendar'));
@@ -78,8 +78,8 @@ test('denied consent never exchanges a code or creates signed-in state', async (
 test('desktop delegates to the native system-browser flow', async () => {
   const env = environment();
   env.window.pywebview = {api: {sign_in: async (provider, calendar) => ({provider, calendar})}};
-  const result = await env.window.ReplanAuth.signIn('apple');
-  assert.equal(result.provider, 'apple');
+  const result = await env.window.ReplanAuth.signIn('google');
+  assert.equal(result.provider, 'google');
   assert.equal(result.calendar, false);
   assert.equal(env.calls.length, 0);
 });

@@ -72,6 +72,8 @@ class PlannerAuth {
   static AuthConfig? _config;
   static String? setupError;
   static Future<void> ensureProviderEnabled(OAuthProvider provider) async {
+    if (provider != OAuthProvider.google)
+      throw AuthUnavailable('Use Google sign-in or continue as a guest.');
     final config = _config;
     if (config == null) return;
     final response = await http
@@ -85,7 +87,7 @@ class PlannerAuth {
     final settings = jsonDecode(response.body) as Map<String, dynamic>;
     if (settings['external']?[provider.name] != true)
       throw AuthUnavailable(
-        '${provider == OAuthProvider.apple ? 'Apple' : 'Google'} sign-in is not available yet. Choose another option or continue as a guest.',
+        'Google sign-in is not available yet. Choose another option or continue as a guest.',
       );
   }
 

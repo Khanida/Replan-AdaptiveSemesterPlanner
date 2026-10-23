@@ -162,11 +162,6 @@ class _AccountDialogState extends State<_AccountDialog> {
                 onPressed: _busy ? null : () => _signIn(OAuthProvider.google),
                 child: const Text('Continue with Google'),
               ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: _busy ? null : () => _signIn(OAuthProvider.apple),
-                child: const Text('Continue with Apple'),
-              ),
             ],
             if (_busy)
               const Padding(

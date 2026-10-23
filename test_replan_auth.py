@@ -103,11 +103,9 @@ class AuthTests(unittest.TestCase):
         self.assertEqual(result['calendarToken'], 'calendar-token')
         self.assertIn('https://www.googleapis.com/auth/calendar', captured['params']['scopes'][0])
 
-    def test_apple_uses_same_verified_code_exchange(self):
-        result, captured = self.flow(provider='apple')
-        self.assertEqual(result['provider'], 'apple')
-        self.assertEqual(captured['params']['provider'], ['apple'])
-        self.assertNotIn('scopes', captured['params'])
+    def test_apple_login_is_rejected(self):
+        with self.assertRaises(ValueError):
+            auth.DesktopAuth(self.root).sign_in('apple')
 
     def test_unrelated_callback_cannot_complete_login(self):
         result, captured = self.flow(bad_callback=True)

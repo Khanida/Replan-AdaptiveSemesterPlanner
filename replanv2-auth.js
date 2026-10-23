@@ -1,4 +1,4 @@
-/* Optional Google/Apple OAuth. Public configuration only; tokens stay in memory. */
+/* Optional Google OAuth. Public configuration only; tokens stay in memory. */
 (function () {
   'use strict';
   const params = new URLSearchParams(location.search);
@@ -35,7 +35,7 @@
     return response.json();
   }
   async function signIn(provider, calendar = false) {
-    if (!['google', 'apple'].includes(provider) || (calendar && provider !== 'google')) throw Error('Choose Google or Apple.');
+    if (provider !== 'google' || (calendar && provider !== 'google')) throw Error('Use Google sign-in or continue as a guest.');
     // The native bridge opens the default browser and receives its loopback callback.
     if (window.pywebview?.api?.sign_in) return window.pywebview.api.sign_in(provider, calendar);
     if (busy) throw Error('A sign-in window is already open.');

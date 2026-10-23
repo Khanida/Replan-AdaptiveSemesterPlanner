@@ -74,8 +74,8 @@ class DesktopAuth:
         self._lock = threading.Lock()
 
     def sign_in(self, provider: str, calendar: bool = False) -> dict:
-        if provider not in ('google', 'apple') or not isinstance(calendar, bool):
-            raise ValueError('Choose Google or Apple.')
+        if provider != 'google' or not isinstance(calendar, bool):
+            raise ValueError('Use Google sign-in or continue as a guest.')
         if calendar and provider != 'google':
             raise ValueError('Google Calendar requires a Google account.')
         if not self._lock.acquire(blocking=False):
