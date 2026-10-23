@@ -15,3 +15,11 @@ test('browser script dependencies exist and calendar helper loads before the UI'
   assert.ok(scripts.indexOf('replanv2-calendar.js')<scripts.indexOf('replanv2.js'));
   assert.ok(scripts.indexOf('replanv2-engine.js')<scripts.indexOf('replanv2.js'));
 });
+test('web v2 makes daily PDF the primary export and keeps backups in recovery tools',()=>{
+  assert.ok((html.match(/data-action="save"/g)||[]).length>=2);
+  assert.match(html,/data-action="save"[^>]*>↓ Download PDF/);
+  const recovery=html.match(/<details class="backup-tools">([\s\S]*?)<\/details>/)?.[1];
+  assert.ok(recovery);assert.match(recovery,/Plan backup and recovery/);
+  assert.match(recovery,/data-action="backup"/);assert.match(recovery,/data-action="export-original"/);
+  assert.match(html,/Continue with Google/);assert.doesNotMatch(html,/Continue with Apple/);
+});

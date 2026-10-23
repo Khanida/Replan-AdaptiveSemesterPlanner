@@ -12,16 +12,16 @@
   let state=E.emptyState(), view='today', page=0, dailyPage=0, sortKey='Date',ascending=true,selected=new Set(), visible=[],editing=null;
   let toastTimer,lastDay=E.today(),syncing=false,contextIds=[];
   let accountSession=null,googleSession=null,authBusy=false,authVersion=0;
-  let storageAvailable=true,startupError='';
-  try {const saved=localStorage.getItem(KEY);if(saved)state=E.validateState(JSON.parse(saved));}
-  catch(error){startupError='Could not restore browser storage. Your saved data has not been overwritten. Open a JSON backup, or save a new plan.';storageAvailable=false;}
+  let storageAvailable=true,startupError='',originalSaved=null,recoveryExported=false;
+  try {originalSaved=localStorage.getItem(KEY);if(originalSaved)state=E.validateState(JSON.parse(originalSaved));}
+  catch(error){startupError='Could not restore browser storage. Your saved data has not been overwritten. Export the original saved data under Plan backup and recovery, then open a valid backup. Autosave is paused.';storageAvailable=false;}
   function notify(message,error=false){
     $('status-line').textContent=message;$('toast').textContent=message;$('toast').hidden=false;
     $('toast').style.background=error?'var(--danger-bg)':'';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,5500);
   }
   function persist(){
     try { if(!storageAvailable)return;localStorage.setItem(KEY,JSON.stringify(state));document.querySelector('.local-badge').innerHTML='<i></i> Saved on this device'; }
-    catch(error){storageAvailable=false;document.querySelector('.local-badge').textContent='Save a JSON backup';notify('Browser storage is unavailable or full. Use JSON backup in Study roadmap to download a backup.',true);}
+    catch(error){storageAvailable=false;document.querySelector('.local-badge').textContent='Save a JSON backup';notify('Browser storage is unavailable or full. Use JSON backup under Plan backup and recovery to download a backup.',true);}
   }
   function commit(next,message){state=next;selected.clear();persist();render();if(message)notify(message);}
   function confirmAction(title,message,yes='Continue') {
@@ -142,6 +142,8 @@
   }
   function render(){
     applyTheme();
+    $('export-original').hidden=!startupError||originalSaved===null;
+    document.querySelectorAll('[data-action="save"]').forEach(button=>button.disabled=savingPDF);
     const m=E.analyze(state);$('current-date').textContent=longDate(E.today()).toUpperCase();$('roast-message').textContent=E.roast(state);
     $('roast-level').value=state.roast;$('plan-start').value=state.start;$('daily-cap').value=state.cap;for(let i=0;i<7;i++)$('weekday-'+i).value=state.availability?.weekdays?.[i]??'';$('date-availability').value=Object.entries(state.availability?.dates||{}).map(([d,h])=>`${d} = ${h}`).join('\n');$('hours-per-credit').value=state.hoursPerCH;
     updateCourseSelectors();renderMetrics(m);renderToday(m);renderSchedule();renderCourses();renderDaily(m);renderInsights(m);switchView(view);
@@ -160,18 +162,24 @@
     document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);return true;
   }
   async function backup(){if(await download('replan-semester.json',JSON.stringify(state,null,2),'application/json'))notify('JSON backup saved, including courses, progress, settings, and history.');}
+  async function exportOriginal(){
+    if(originalSaved===null)throw Error('No original saved data is available to export.');
+    if(await download('replan-recovery.json',originalSaved,'application/json')){recoveryExported=true;notify('Original saved data exported. Keep this file before restoring another plan.');}
+  }
   let savingPDF=false;
   async function save(){
     if(savingPDF)return;
     if(!state.rows.some(row=>row.Status!=='Missed'))throw Error('Generate or replan a schedule before saving its PDF.');
-    savingPDF=true;const button=document.querySelector('[data-action="save"]'),label=button.textContent;
-    button.disabled=true;button.textContent='Preparing PDF…';
+    savingPDF=true;
+    const updateButtons=label=>document.querySelectorAll('[data-action="save"]').forEach(button=>{button.disabled=savingPDF;button.textContent=label;});
+    updateButtons('Preparing PDF…');
     try{
-      const content=await window.ReplanPDF.createSchedulePDF(state,(page,total)=>{button.textContent=`PDF ${page}/${total}…`;});
-      if(!await download(`replan-checklist-${E.today()}.pdf`,content,'application/pdf'))return;
-      notify('PDF checklist downloaded. Print the A4 pages and check off each study session by hand.');
-    }finally{savingPDF=false;button.disabled=false;button.textContent=label;}
+      const content=await window.ReplanPDF.createSchedulePDF(state,(page,total)=>updateButtons(`PDF ${page}/${total}…`));
+      if(!await download(`replan-daily-checklist-${E.today()}.pdf`,content,'application/pdf'))return;
+      notify('Daily PDF checklist downloaded. Each date has its own section, completion boxes, and notes space.');
+    }finally{savingPDF=false;updateButtons('↓ Download PDF');}
   }
+
   function metadata(){return {version:2,planId:state.planId,courses:state.courses,workload:state.workload,history:state.history,start:state.start,cap:state.cap,hoursPerCH:state.hoursPerCH,availability:state.availability};}
   function readAvailability(){
     const availability={weekdays:{},dates:{}};
@@ -265,10 +273,13 @@
         if(jsonFiles.length!==1)throw Error('Choose one JSON plan, or a CSV with its matching metadata file.');
         next=E.validateState(JSON.parse(await jsonFiles[0].text()));
       }
-      if((state.courses.length||state.rows.length)&&!await confirmAction('Open a different plan?','This replaces the current browser plan. Save a JSON backup first if you need the current version.','Open plan'))return;
+      if((state.courses.length||state.rows.length||startupError)&&!await confirmAction('Open a different plan?','This replaces the current browser plan. Save a JSON backup first if you need the current version.','Open plan'))return;
       const overdue=next.rows.some(r=>r.Date<E.today()&&['Pending','Rescheduled'].includes(r.Status));
       if(overdue)next=E.replan(next,E.today(),'Caught up imported overdue sessions');
-      storageAvailable=true;commit(next,inferred?'CSV imported. Credits and exam dates were inferred; review Courses & topics.':'Plan opened, including course details and recorded progress.');switchView(inferred?'courses':'today');
+      if(startupError&&originalSaved!==null&&!recoveryExported){
+        try{localStorage.setItem(KEY+'-recovery',originalSaved);}catch(_){throw Error('Export the original saved data under Plan backup and recovery before restoring this backup.');}
+      }
+      startupError='';originalSaved=null;storageAvailable=true;commit(next,inferred?'CSV imported. Credits and exam dates were inferred; review Courses & topics.':'Plan opened, including course details and recorded progress.');switchView(inferred?'courses':'today');
     }catch(error){notify('Could not open plan: '+error.message,true);}
     $('open-file').value='';
   }
@@ -389,7 +400,7 @@
   const actions={'google-login':openGoogleLogin,'continue-guest':()=>{signOutGoogle();$('google-dialog').close();},backup,open:()=>$('open-file').click(),save,calendar:openCalendar,'add-course':()=>openCourse(),demo:loadDemo,
     replan:()=>adaptiveReplan(),roast:()=>{state.variation++;persist();$('roast-message').textContent=E.roast(state);},guide:()=>$('guide-dialog').showModal(),
     'view-courses':()=>switchView('courses'),'export-csv':async()=>{if(!state.rows.length)throw Error('Generate a plan before exporting.');if(!await download('replan-semester.csv',E.toCSV(state),'text/csv;charset=utf-8'))return;notify('CSV exported. Download CSV metadata too to preserve exact course details.');},
-    'export-meta':async()=>{if(!await download('replan-semester.csv.meta.json',JSON.stringify(metadata(),null,2),'application/json'))return;notify('Metadata exported. Keep it beside the matching CSV, or use JSON backup for one complete plan file.');},
+    'export-original':exportOriginal,'export-meta':async()=>{if(!await download('replan-semester.csv.meta.json',JSON.stringify(metadata(),null,2),'application/json'))return;notify('Metadata exported. Keep it beside the matching CSV, or use JSON backup for one complete plan file.');},
     print:printReport,'export-ics':exportICS,'jump-today':jumpToday,
     'batch-done':()=>mark([...selected],'Completed'),'batch-missed':()=>mark([...selected],'Missed'),'batch-pending':()=>mark([...selected],'Pending'),
     'finish-today':()=>mark(todayIds(),'Completed'),'miss-today':()=>mark(todayIds(),'Missed'),'reset-today':()=>mark(todayIds(true),'Pending')};

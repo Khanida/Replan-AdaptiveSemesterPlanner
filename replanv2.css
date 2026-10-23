@@ -396,3 +396,6 @@ select option, select optgroup { background:var(--raised); color:var(--text); }
 
 #google-signin{display:flex;align-items:center;justify-content:center;gap:12px}
 .google-signin-icon{flex-shrink:0}
+
+.backup-tools{margin:0 0 18px;padding:12px 0}
+.backup-tools .button-row{margin-top:10px;flex-wrap:wrap}

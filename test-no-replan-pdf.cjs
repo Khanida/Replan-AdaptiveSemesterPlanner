@@ -7,12 +7,12 @@ function plan(){
   const s=E.emptyState(ON);s.courses=[{name:'Programming',credit_hours:3,exam_date:E.addDays(ON,35),topics:['Functions','Recursion','Project']}];
   return E.generate(s);
 }
-test('The wall checklist groups every active session by week without missing or duplicate rows',()=>{
+test('The wall checklist groups every active session by day without missing or duplicate rows',()=>{
   const s=plan();s.rows[0].Status='Missed';s.rows[1].Status='Completed';
   const pages=PDF.layoutSchedule(s),printed=pages.flatMap(p=>p.rows.map(r=>r.row));
   assert.equal(printed.length,s.rows.length-1);assert.equal(new Set(printed.map(r=>r.id)).size,printed.length);
   assert.ok(printed.some(r=>r.Status==='Completed'));assert.ok(printed.every(r=>r.Status!=='Missed'));
-  for(const p of pages){assert.equal(new Date(p.week+'T00:00:00Z').getUTCDay(),1);for(const r of p.rows){assert.ok(r.y>=150);assert.ok(r.y+r.height<=730);}}
+  for(const p of pages){assert.ok(p.rows.every(r=>r.row.Date===p.date));for(const r of p.rows){assert.ok(r.y>=150);assert.ok(r.y+r.height<=730);}}
 });
 test('Long course and topic names wrap and paginate before overlapping notes or footers',()=>{
   const s=plan();s.rows=Array.from({length:60},(_,i)=>({...s.rows[0],id:String(i),Course:'A very long course title '.repeat(4),Topic:'A long topic that must wrap neatly '.repeat(8)}));
@@ -30,7 +30,7 @@ test('Drawing emits one large manual checkbox per row and marks only completed s
   let boxes=0;const text=[];
   const ctx={fillRect(){},fillText(value){text.push(value);},beginPath(){},moveTo(){},lineTo(){},stroke(){},strokeRect(x,y,w,h){assert.equal(w,13);assert.equal(h,13);boxes++;}};
   PDF.drawPage(ctx,page,0,1,s,ON);
-  assert.equal(boxes,page.rows.length);assert.ok(text.includes('STUDY CHECKLIST'));assert.ok(text.includes('NOTES / NEXT WEEK'));assert.ok(text.includes('PAGE 1 / 1'));
+  assert.equal(boxes,page.rows.length);assert.ok(text.includes('DAILY STUDY CHECKLIST'));assert.ok(text.includes('NOTES / NEXT STEPS'));assert.ok(text.includes('PAGE 1 / 1'));
 });
 test('PDF page tree, image streams, lengths, and cross-reference offsets are consistent',()=>{
   const image={width:1,height:1,bytes:new Uint8Array([0xff,0xd8,0xff,0xd9])};
@@ -46,7 +46,7 @@ test('An empty or missed-only plan cannot download a misleading blank checklist'
   const s=plan();s.rows.forEach(r=>r.Status='Missed');assert.throws(()=>PDF.layoutSchedule(s));
 });
 
-test('A normal three-course week fits on one A4 sheet',()=>{
+test('A three-course week exports seven separate daily checklist sheets',()=>{
   const s=plan();s.rows=Array.from({length:21},(_,i)=>({...s.rows[0],id:String(i),Date:E.addDays(ON,Math.floor(i/3)),Course:['Calculus','Networks','Programming'][i%3],Topic:'Practice'}));
-  const pages=PDF.layoutSchedule(s);assert.equal(pages.length,1);assert.equal(pages[0].rows.length,21);
+  const pages=PDF.layoutSchedule(s);assert.equal(pages.length,7);assert.ok(pages.every(page=>page.rows.length===3));
 });

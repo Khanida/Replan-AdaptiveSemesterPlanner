@@ -4,7 +4,7 @@ Automated checks are defined in `.github/workflows/checks.yml`. They exercise th
 
 Run these manual checks for each release and record the OS, browser/runtime version, date and result in the release notes:
 
-- Browser: start empty; add competing courses; set different weekday hours and a day off; verify no allocation exceeds capacity; complete one topic and replan on the final study day; verify completed work survives and spare time remains usable.
+- Browser: verify Download PDF produces daily sections with checkboxes, notes and continued pages for long days; check Plan backup and recovery, including export of unreadable original storage; start empty; add competing courses; set different weekday hours and a day off; verify no allocation exceeds capacity; complete one topic and replan on the final study day; verify completed work survives and spare time remains usable.
 - Estimates: give a difficult topic more time; add revision as a separate topic; confirm total workload, capacity and unscheduled warnings change consistently.
 - Recovery: export a JSON backup, reload, restore it and compare progress. Test unavailable/full storage. Flutter malformed saved data must show recovery controls and never overwrite the original automatically. Restore a valid backup after exporting the original.
 - Desktop: launch with stable port; export PDF/CSV/JSON; cancel each Save As dialog; reload and verify persistent progress. Test a second instance/occupied port and unavailable webview backend.

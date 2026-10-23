@@ -5,7 +5,6 @@
   const WIDTH=595.28,HEIGHT=841.89,LEFT=36,RIGHT=559,TOP=150,BOTTOM=730;
   const FONT='Arial, sans-serif';
   const dateText=(value,options)=>new Date(E.dayNumber(value)*86400000).toLocaleDateString(undefined,{...options,timeZone:'UTC'});
-  function weekStart(value){const day=new Date(E.dayNumber(value)*86400000).getUTCDay();return E.addDays(value,-((day+6)%7));}
   function wrap(text,width,measure){
     const lines=[];let line='';
     // Character-level fallback also wraps long unbroken strings and CJK text.
@@ -24,12 +23,12 @@
   function layoutSchedule(state,measure=(text)=>Array.from(text).length*5.4){
     const rows=E.clone(state.rows.filter(row=>row.Status!=='Missed')).sort((a,b)=>a.Date.localeCompare(b.Date)||a.Course.localeCompare(b.Course));
     if(!rows.length)throw Error('There are no scheduled study sessions to save. Generate or replan your roadmap first.');
-    const weeks=new Map();
-    for(const row of rows){const week=weekStart(row.Date);if(!weeks.has(week))weeks.set(week,[]);weeks.get(week).push(row);}
+    const days=new Map();
+    for(const row of rows){if(!days.has(row.Date))days.set(row.Date,[]);days.get(row.Date).push(row);}
     const pages=[];
-    for(const [week,sessions] of weeks){
+    for(const [date,sessions] of days){
       let page=null,y=TOP,part=0;
-      const newPage=()=>{page={week,part:++part,rows:[],weeklyHours:E.sum(sessions,r=>r['Target Hours']),weeklySessions:sessions.length};pages.push(page);y=TOP;};
+      const newPage=()=>{page={date,part:++part,rows:[],dailyHours:E.sum(sessions,r=>r['Target Hours']),dailySessions:sessions.length};pages.push(page);y=TOP;};
       newPage();
       for(const row of sessions){
         const courseLines=wrap(row.Course,105,measure),topicLines=wrap(row.Topic,241,measure);
@@ -67,10 +66,9 @@
     const text=(value,x,y,size=10,bold=false,color='#202720')=>{ctx.font=`${bold?'600':'400'} ${size}px ${FONT}`;ctx.fillStyle=color;ctx.fillText(value,x,y);};
     const line=(x1,y1,x2,y2,color='#d6dcd6',width=.6)=>{ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();};
     ctx.fillStyle='#ffffff';ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textBaseline='top';
-    text('Replan - Adaptive Semester Planner',LEFT,29,9,true,'#4d6653');text('STUDY CHECKLIST',LEFT,47,24,true);
-    const end=E.addDays(page.week,6);
-    text(`${dateText(page.week,{day:'numeric',month:'short',year:'numeric'})}  –  ${dateText(end,{day:'numeric',month:'short',year:'numeric'})}${page.part>1?'  / continued':''}`,LEFT,81,11,true);
-    text(`${page.weeklySessions} sessions  /  ${Number(page.weeklyHours.toFixed(1))} study hours this week`,LEFT,101,9,false,'#515b53');
+    text('Replan - Adaptive Semester Planner',LEFT,29,9,true,'#4d6653');text('DAILY STUDY CHECKLIST',LEFT,47,22,true);
+    text(`${dateText(page.date,{weekday:'long',day:'numeric',month:'short',year:'numeric'})}${page.part>1?'  / continued':''}`,LEFT,81,11,true);
+    text(`${page.dailySessions} sessions  /  ${Number(page.dailyHours.toFixed(2))} study hours for this day`,LEFT,101,9,false,'#515b53');
     text('Check each box after studying. One session at a time.',LEFT,117,9,false,'#515b53');
     ctx.fillStyle='#edf0eb';ctx.fillRect(LEFT,133,RIGHT-LEFT,17);
     text('DAY',LEFT+5,138,7.5,true);text('COURSE',114,138,7.5,true);text('TOPIC / MILESTONE',231,138,7.5,true);text('TIME',487,138,7.5,true);text('DONE',532,138,7.5,true);
@@ -86,7 +84,7 @@
       if(completed){ctx.strokeStyle='#3e4b40';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(538.5,boxY+6.5);ctx.lineTo(542,boxY+10);ctx.lineTo(547,boxY+3);ctx.stroke();}
       line(LEFT,y+height,RIGHT,y+height);
     });
-    text('NOTES / NEXT WEEK',LEFT,747,7.5,true,'#515b53');line(LEFT,773,RIGHT,773);line(LEFT,791,RIGHT,791);
+    text('NOTES / NEXT STEPS',LEFT,747,7.5,true,'#515b53');line(LEFT,773,RIGHT,773);line(LEFT,791,RIGHT,791);
     const warning=E.analyze(state,generated).unplaced;
     text(warning>0?`${Number(warning.toFixed(1))}h is still unscheduled. Review deadlines in the app.`:'Blank boxes are yours to check. Ticks reflect work completed before export.',LEFT,804,7,false,warning>0?'#783c31':'#626d64');
     text(`Saved ${dateText(generated,{day:'numeric',month:'short',year:'numeric'})}`,LEFT,819,7,false,'#626d64');
