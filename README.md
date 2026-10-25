@@ -4,6 +4,18 @@ RePlan turns courses, topics, exam deadlines and study availability into a daily
 
 **Status: working local prototype.** For the latest RePlan experience, use **v2 (Web app)**, **v2_1 (Desktop app)**, or **v2_1 (Mobile app)**. The desktop app shares the browser application's interface; the mobile app uses Flutter and has its own local storage. Historical Python/Tkinter editions are retained for reference; new users should start with the latest apps below.
 
+## Download apps
+
+Published GitHub releases include downloadable packages for the browser edition, Windows/macOS/Linux desktop, Android, and the Flutter web app. Open [RePlan Releases](https://github.com/Khanida/Replan-AdaptiveSemesterPlanner/releases/latest) and choose the package for your device. Packages are built automatically when a GitHub release is published.
+
+- **Browser v2:** download `RePlan-Web-v2.zip`, extract it, and serve the folder with `python3 -m http.server 8765 --bind 127.0.0.1 --directory extracted-folder`. Open `http://127.0.0.1:8765/replanv2.html`.
+- **Desktop:** download the ZIP matching Windows, macOS, or Linux, extract it, and launch RePlan. Windows may need the WebView2 runtime; Linux may need GTK and WebKitGTK. The macOS package is not signed or notarized. The packaged app stores its profile in the system app-data folder; import a JSON backup to move a plan from a script-run desktop profile.
+- **Android:** download and install `RePlan-Mobile-Android.apk`. Android may ask you to allow installation from your browser or file manager.
+- **Flutter macOS:** download `RePlan-Flutter-macOS.zip` and open the included app. It is an unsigned build.
+- **Installable web app:** download `RePlan-Mobile-Web-PWA.zip`, extract it, and serve the folder on localhost or HTTPS. Open it in a supported browser and choose its install option. On iPhone/iPad, open the HTTPS site in Safari and use **Add to Home Screen**.
+
+There is no iOS `.ipa` package yet; distributing one requires Apple signing and App Store or TestFlight setup.
+
 ## Start here
 
 - **Web users:** use [RePlan v2 — Web app](#web-app-v2), served from `replanv2.html`.

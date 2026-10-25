@@ -17,7 +17,7 @@ from pathlib import Path
 from replan_auth import DesktopAuth
 
 APP_NAME = "Replan - Adaptive Semester Planner"
-APP_ROOT = Path(__file__).resolve().parent
+APP_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 ASSETS = ("replanv2.html", "replanv2.css", "replanv2.js", "replanv2-calendar.js",
           "replanv2-engine.js", "replanv2-pdf.js", "replanv2-auth.js")
 DEFAULT_PORT = 17863  # Stable origin keeps desktop autosave available between launches.
@@ -92,7 +92,17 @@ def main(argv=None) -> int:
               "Then run:\n  python3 replanv2_1.py", file=sys.stderr)
         return 1
 
-    profile = APP_ROOT / ".replanv2-desktop"
+    if getattr(sys, "frozen", False):
+        if sys.platform == "win32":
+            data_root = Path.home() / "AppData" / "Local" / "RePlan"
+        elif sys.platform == "darwin":
+            data_root = Path.home() / "Library" / "Application Support" / "RePlan"
+        else:
+            import os
+            data_root = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "RePlan"
+        profile = data_root / ".replanv2-desktop"
+    else:
+        profile = APP_ROOT / ".replanv2-desktop"
     try:
         profile.mkdir(parents=True, exist_ok=True)
         webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True

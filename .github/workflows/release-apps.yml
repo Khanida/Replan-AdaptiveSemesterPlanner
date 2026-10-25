@@ -1,0 +1,104 @@
+name: Package downloadable apps
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Windows-x64
+            runner: windows-latest
+          - platform: macOS
+            runner: macos-latest
+          - platform: Linux-x64
+            runner: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+      - run: python -m pip install -r requirements-desktop.txt pyinstaller
+      - run: python -m PyInstaller --clean packaging/RePlan.spec
+      - if: runner.os == 'Windows'
+        run: python packaging/archive.py dist/RePlan artifacts/RePlan-Desktop-${{ matrix.platform }}.zip
+      - if: runner.os == 'Linux'
+        run: python packaging/archive.py dist/RePlan artifacts/RePlan-Desktop-${{ matrix.platform }}.zip
+      - if: runner.os == 'macOS'
+        run: ditto -c -k --sequesterRsrc --keepParent dist/RePlan.app artifacts/RePlan-Desktop-${{ matrix.platform }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RePlan-Desktop-${{ matrix.platform }}
+          path: artifacts/*.zip
+          if-no-files-found: error
+
+  mobile_and_web:
+    name: Flutter mobile and web apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - working-directory: rplanv2_2
+        run: flutter pub get --enforce-lockfile
+      - working-directory: rplanv2_2
+        run: flutter build apk --release
+      - run: mkdir -p artifacts && cp rplanv2_2/build/app/outputs/flutter-apk/app-release.apk artifacts/RePlan-Mobile-Android.apk
+      - working-directory: rplanv2_2
+        run: flutter build web --release
+      - run: |
+          python packaging/archive.py rplanv2_2/build/web artifacts/RePlan-Mobile-Web-PWA.zip
+          mkdir -p browser-web artifacts
+          cp replanv2.html replanv2.css replanv2.js replanv2-calendar.js replanv2-engine.js replanv2-pdf.js replanv2-auth.js replan-auth.json browser-web/
+          python packaging/archive.py browser-web artifacts/RePlan-Web-v2.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RePlan-Mobile-and-Web
+          path: artifacts/*
+          if-no-files-found: error
+
+  flutter_macos:
+    name: Flutter macOS app
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - working-directory: rplanv2_2
+        run: flutter pub get --enforce-lockfile
+      - working-directory: rplanv2_2
+        run: flutter build macos --release --no-codesign
+      - run: mkdir -p artifacts && ditto -c -k --sequesterRsrc --keepParent rplanv2_2/build/macos/Build/Products/Release/*.app artifacts/RePlan-Flutter-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RePlan-Flutter-macOS
+          path: artifacts/*.zip
+          if-no-files-found: error
+
+  release-assets:
+    name: Attach packages to GitHub Release
+    runs-on: ubuntu-latest
+    needs: [desktop, mobile_and_web, flutter_macos]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: RePlan-*
+          path: release-assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
