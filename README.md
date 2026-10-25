@@ -122,4 +122,4 @@ Implemented: course/topic models, manual outlines, capacity-constrained scheduli
 
 ## License
 
-Commercial use of RePlan requires the copyright holder's prior written permission and a separate written agreement covering payment to the copyright holder. Repository visibility does not grant permission to sell, sublicense, or include RePlan in a commercial product. This project is not offered under an open-source license.
+RePlan is available under the custom [RePlan Proprietary License](LICENSE). It permits personal, noncommercial use. Commercial software use requires prior written permission and a separate written agreement covering payment to the Licensor. Independent reviews and links to official downloads are allowed; paid sponsorships or affiliate promotions require a separate written agreement. This is not an open-source license.
