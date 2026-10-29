@@ -48,77 +48,77 @@ The gallery below shows RePlan's planner dashboard, roadmap and course views, wo
 <details>
 <summary>View all 18 screenshots</summary>
 
-### 7 43 10PM
+### Dashboard — warm dark theme, mild coaching
 
-![RePlan screenshot: 01-7-43-10PM](assets/screenshots/01-7-43-10PM.png)
+![Dashboard — warm dark theme, mild coaching](assets/screenshots/01-7-43-10PM.png)
 
-### 7 43 21PM
+### Dashboard — green theme, coaching off
 
-![RePlan screenshot: 02-7-43-21PM](assets/screenshots/02-7-43-21PM.png)
+![Dashboard — green theme, coaching off](assets/screenshots/02-7-43-21PM.png)
 
-### 7 43 32PM
+### Dashboard — red theme, extra spicy coaching
 
-![RePlan screenshot: 03-7-43-32PM](assets/screenshots/03-7-43-32PM.png)
+![Dashboard — red theme, extra spicy coaching](assets/screenshots/03-7-43-32PM.png)
 
-### 7 44 48PM
+### Today view — daily settings, session actions, and overload warning
 
-![RePlan screenshot: 04-7-44-48PM](assets/screenshots/04-7-44-48PM.png)
+![Today view — daily settings, session actions, and overload warning](assets/screenshots/04-7-44-48PM.png)
 
-### 7 45 03PM
+### Today view — completed and missed study sessions
 
-![RePlan screenshot: 05-7-45-03PM](assets/screenshots/05-7-45-03PM.png)
+![Today view — completed and missed study sessions](assets/screenshots/05-7-45-03PM.png)
 
-### 7 45 17PM
+### Today view — missed sessions and replanned work
 
-![RePlan screenshot: 06-7-45-17PM](assets/screenshots/06-7-45-17PM.png)
+![Today view — missed sessions and replanned work](assets/screenshots/06-7-45-17PM.png)
 
-### 7 45 25PM
+### Today view — adaptive replan and unscheduled workload alert
 
-![RePlan screenshot: 07-7-45-25PM](assets/screenshots/07-7-45-25PM.png)
+![Today view — adaptive replan and unscheduled workload alert](assets/screenshots/07-7-45-25PM.png)
 
-### 7 45 38PM
+### Study roadmap — searchable session list and status filters
 
-![RePlan screenshot: 08-7-45-38PM](assets/screenshots/08-7-45-38PM.png)
+![Study roadmap — searchable session list and status filters](assets/screenshots/08-7-45-38PM.png)
 
-### 7 45 59PM
+### Courses and topics — course cards and topic timelines
 
-![RePlan screenshot: 09-7-45-59PM](assets/screenshots/09-7-45-59PM.png)
+![Courses and topics — course cards and topic timelines](assets/screenshots/09-7-45-59PM.png)
 
-### 7 46 24PM
+### Daily workload — study hours chart and day-by-day breakdown
 
-![RePlan screenshot: 10-7-46-24PM](assets/screenshots/10-7-46-24PM.png)
+![Daily workload — study hours chart and day-by-day breakdown](assets/screenshots/10-7-46-24PM.png)
 
-### 7 46 38PM
+### Insights and receipts — semester diagnostic and next steps
 
-![RePlan screenshot: 11-7-46-38PM](assets/screenshots/11-7-46-38PM.png)
+![Insights and receipts — semester diagnostic and next steps](assets/screenshots/11-7-46-38PM.png)
 
-### 7 46 53PM
+### Dashboard — light pink theme and rescheduled sessions
 
-![RePlan screenshot: 12-7-46-53PM](assets/screenshots/12-7-46-53PM.png)
+![Dashboard — light pink theme and rescheduled sessions](assets/screenshots/12-7-46-53PM.png)
 
-### 7 47 17PM
+### Dashboard — pink theme with extra spicy coaching
 
-![RePlan screenshot: 13-7-47-17PM](assets/screenshots/13-7-47-17PM.png)
+![Dashboard — pink theme with extra spicy coaching](assets/screenshots/13-7-47-17PM.png)
 
-### 7 47 24PM
+### Dashboard — cream theme with mild coaching
 
-![RePlan screenshot: 14-7-47-24PM](assets/screenshots/14-7-47-24PM.png)
+![Dashboard — cream theme with mild coaching](assets/screenshots/14-7-47-24PM.png)
 
-### 7 47 29PM
+### Dashboard — green theme with coaching off
 
-![RePlan screenshot: 15-7-47-29PM](assets/screenshots/15-7-47-29PM.png)
+![Dashboard — green theme with coaching off](assets/screenshots/15-7-47-29PM.png)
 
-### 7 47 36PM
+### PDF export — printable daily study checklist
 
-![RePlan screenshot: 16-7-47-36PM](assets/screenshots/16-7-47-36PM.png)
+![PDF export — printable daily study checklist](assets/screenshots/16-7-47-36PM.png)
 
-### 7 47 55PM
+### Sign-in dialog — Google account or guest planning
 
-![RePlan screenshot: 17-7-47-55PM](assets/screenshots/17-7-47-55PM.png)
+![Sign-in dialog — Google account or guest planning](assets/screenshots/17-7-47-55PM.png)
 
-### 7 48 41PM
+### Dashboard — red theme with medium coaching
 
-![RePlan screenshot: 18-7-48-41PM](assets/screenshots/18-7-48-41PM.png)
+![Dashboard — red theme with medium coaching](assets/screenshots/18-7-48-41PM.png)
 
 </details>
 
