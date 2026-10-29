@@ -43,82 +43,82 @@ If a saved browser plan cannot be restored, autosave pauses and **Export origina
 
 ## Screenshots
 
-The gallery below shows RePlan's planner dashboard, roadmap and course views, workload and insights, theme options, and PDF checklist.
+The gallery below shows RePlan's planner dashboard, roadmap and course views, workload and insights, appearance options, and PDF checklist. RePlan has four color modes—Off, Mild, Medium, and Extra spicy—and each supports both light and dark appearance. The app follows your device's system appearance and updates when it changes.
 
 <details>
 <summary>View all 18 screenshots</summary>
 
-### Dashboard — warm dark theme, mild coaching
+### Dashboard — red theme with medium coaching
 
-![Dashboard — warm dark theme, mild coaching](assets/screenshots/01-7-43-10PM.png)
+![Dashboard — red theme with medium coaching](assets/screenshots/01-7-43-10PM.png)
 
-### Dashboard — green theme, coaching off
+### Dashboard — warm dark theme with mild coaching
 
-![Dashboard — green theme, coaching off](assets/screenshots/02-7-43-21PM.png)
-
-### Dashboard — red theme, extra spicy coaching
-
-![Dashboard — red theme, extra spicy coaching](assets/screenshots/03-7-43-32PM.png)
-
-### Today view — daily settings, session actions, and overload warning
-
-![Today view — daily settings, session actions, and overload warning](assets/screenshots/04-7-44-48PM.png)
-
-### Today view — completed and missed study sessions
-
-![Today view — completed and missed study sessions](assets/screenshots/05-7-45-03PM.png)
-
-### Today view — missed sessions and replanned work
-
-![Today view — missed sessions and replanned work](assets/screenshots/06-7-45-17PM.png)
-
-### Today view — adaptive replan and unscheduled workload alert
-
-![Today view — adaptive replan and unscheduled workload alert](assets/screenshots/07-7-45-25PM.png)
-
-### Study roadmap — searchable session list and status filters
-
-![Study roadmap — searchable session list and status filters](assets/screenshots/08-7-45-38PM.png)
-
-### Courses and topics — course cards and topic timelines
-
-![Courses and topics — course cards and topic timelines](assets/screenshots/09-7-45-59PM.png)
-
-### Daily workload — study hours chart and day-by-day breakdown
-
-![Daily workload — study hours chart and day-by-day breakdown](assets/screenshots/10-7-46-24PM.png)
-
-### Insights and receipts — semester diagnostic and next steps
-
-![Insights and receipts — semester diagnostic and next steps](assets/screenshots/11-7-46-38PM.png)
-
-### Dashboard — light pink theme and rescheduled sessions
-
-![Dashboard — light pink theme and rescheduled sessions](assets/screenshots/12-7-46-53PM.png)
-
-### Dashboard — pink theme with extra spicy coaching
-
-![Dashboard — pink theme with extra spicy coaching](assets/screenshots/13-7-47-17PM.png)
-
-### Dashboard — cream theme with mild coaching
-
-![Dashboard — cream theme with mild coaching](assets/screenshots/14-7-47-24PM.png)
+![Dashboard — warm dark theme with mild coaching](assets/screenshots/02-7-43-21PM.png)
 
 ### Dashboard — green theme with coaching off
 
-![Dashboard — green theme with coaching off](assets/screenshots/15-7-47-29PM.png)
+![Dashboard — green theme with coaching off](assets/screenshots/03-7-43-32PM.png)
 
-### PDF export — printable daily study checklist
+### Dashboard — red theme with extra spicy coaching
 
-![PDF export — printable daily study checklist](assets/screenshots/16-7-47-36PM.png)
+![Dashboard — red theme with extra spicy coaching](assets/screenshots/04-7-44-48PM.png)
 
-### Sign-in dialog — Google account or guest planning
+### Dashboard lower section — accountability sessions and capacity warning
 
-![Sign-in dialog — Google account or guest planning](assets/screenshots/17-7-47-55PM.png)
+![Dashboard lower section — accountability sessions and capacity warning](assets/screenshots/05-7-45-03PM.png)
 
-### Dashboard — red theme with medium coaching
+### Today view — one session completed
 
-![Dashboard — red theme with medium coaching](assets/screenshots/18-7-48-41PM.png)
+![Today view — one session completed](assets/screenshots/06-7-45-17PM.png)
+
+### Today view — two missed sessions and roadmap rebuilt
+
+![Today view — two missed sessions and roadmap rebuilt](assets/screenshots/07-7-45-25PM.png)
+
+### Today view — adaptive replan with 9 hours unscheduled
+
+![Today view — adaptive replan with 9 hours unscheduled](assets/screenshots/08-7-45-38PM.png)
+
+### Study roadmap — session table, search, and status filters
+
+![Study roadmap — session table, search, and status filters](assets/screenshots/09-7-45-59PM.png)
+
+### Courses and topics — course cards and topic timelines
+
+![Courses and topics — course cards and topic timelines](assets/screenshots/10-7-46-24PM.png)
+
+### Daily workload — upcoming study days chart and breakdown
+
+![Daily workload — upcoming study days chart and breakdown](assets/screenshots/11-7-46-38PM.png)
+
+### Insights and receipts — semester diagnostic and roadmap breakdown
+
+![Insights and receipts — semester diagnostic and roadmap breakdown](assets/screenshots/12-7-46-53PM.png)
+
+### Dashboard — light pink theme with medium coaching
+
+![Dashboard — light pink theme with medium coaching](assets/screenshots/13-7-47-17PM.png)
+
+### Dashboard — pink theme with extra spicy coaching
+
+![Dashboard — pink theme with extra spicy coaching](assets/screenshots/14-7-47-24PM.png)
+
+### Dashboard — cream theme with mild coaching
+
+![Dashboard — cream theme with mild coaching](assets/screenshots/15-7-47-29PM.png)
+
+### Dashboard — green theme with coaching off
+
+![Dashboard — green theme with coaching off](assets/screenshots/16-7-47-36PM.png)
+
+### PDF export — daily study checklist
+
+![PDF export — daily study checklist](assets/screenshots/17-7-47-55PM.png)
+
+### Sign-in dialog — Google sign-in or continue as guest
+
+![Sign-in dialog — Google sign-in or continue as guest](assets/screenshots/18-7-48-41PM.png)
 
 </details>
 
