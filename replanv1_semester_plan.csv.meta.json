@@ -1,0 +1,46 @@
+{
+  "courses": [
+    {
+      "name": "Programming & Problem Solving",
+      "credit_hours": 4.0,
+      "exam_date": "2027-01-27",
+      "topics": [
+        "Introduction & Syntax",
+        "Control Structures & Functions",
+        "Data Structures & OOP",
+        "File Handling & Algorithms",
+        "Semester Project & Final Revision"
+      ],
+      "color": "#9a3412",
+      "icon": "\ud83d\udcbb"
+    },
+    {
+      "name": "Calculus & Linear Algebra",
+      "credit_hours": 3.0,
+      "exam_date": "2027-01-02",
+      "topics": [
+        "Limits & Continuity",
+        "Differential Calculus",
+        "Integral Calculus",
+        "Vectors & Matrices",
+        "Past Papers & Final Prep"
+      ],
+      "color": "#059669",
+      "icon": "\ud83d\udcd0"
+    },
+    {
+      "name": "Computer Networks",
+      "credit_hours": 3.0,
+      "exam_date": "2027-02-11",
+      "topics": [
+        "Network Architecture & OSI Model",
+        "Data Link Layer & LANs",
+        "Network Layer & IP Routing",
+        "Transport Layer (TCP/UDP)",
+        "Application Layer & Security Review"
+      ],
+      "color": "#ea580c",
+      "icon": "\ud83c\udf10"
+    }
+  ]
+}

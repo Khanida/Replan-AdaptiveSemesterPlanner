@@ -41,6 +41,87 @@ The web app includes the current course rotation, topic estimates, daily/weekly 
 
 If a saved browser plan cannot be restored, autosave pauses and **Export original saved data** becomes available under Plan backup and recovery. Restoring a valid backup first retains the unreadable original in a separate recovery key, or requires an exported copy if storage is full.
 
+## Screenshots
+
+The gallery below shows RePlan's planner dashboard, roadmap and course views, workload and insights, theme options, and PDF checklist.
+
+<details>
+<summary>View all 18 screenshots</summary>
+
+### 7 43 10PM
+
+![RePlan screenshot: 01-7-43-10PM](assets/screenshots/01-7-43-10PM.png)
+
+### 7 43 21PM
+
+![RePlan screenshot: 02-7-43-21PM](assets/screenshots/02-7-43-21PM.png)
+
+### 7 43 32PM
+
+![RePlan screenshot: 03-7-43-32PM](assets/screenshots/03-7-43-32PM.png)
+
+### 7 44 48PM
+
+![RePlan screenshot: 04-7-44-48PM](assets/screenshots/04-7-44-48PM.png)
+
+### 7 45 03PM
+
+![RePlan screenshot: 05-7-45-03PM](assets/screenshots/05-7-45-03PM.png)
+
+### 7 45 17PM
+
+![RePlan screenshot: 06-7-45-17PM](assets/screenshots/06-7-45-17PM.png)
+
+### 7 45 25PM
+
+![RePlan screenshot: 07-7-45-25PM](assets/screenshots/07-7-45-25PM.png)
+
+### 7 45 38PM
+
+![RePlan screenshot: 08-7-45-38PM](assets/screenshots/08-7-45-38PM.png)
+
+### 7 45 59PM
+
+![RePlan screenshot: 09-7-45-59PM](assets/screenshots/09-7-45-59PM.png)
+
+### 7 46 24PM
+
+![RePlan screenshot: 10-7-46-24PM](assets/screenshots/10-7-46-24PM.png)
+
+### 7 46 38PM
+
+![RePlan screenshot: 11-7-46-38PM](assets/screenshots/11-7-46-38PM.png)
+
+### 7 46 53PM
+
+![RePlan screenshot: 12-7-46-53PM](assets/screenshots/12-7-46-53PM.png)
+
+### 7 47 17PM
+
+![RePlan screenshot: 13-7-47-17PM](assets/screenshots/13-7-47-17PM.png)
+
+### 7 47 24PM
+
+![RePlan screenshot: 14-7-47-24PM](assets/screenshots/14-7-47-24PM.png)
+
+### 7 47 29PM
+
+![RePlan screenshot: 15-7-47-29PM](assets/screenshots/15-7-47-29PM.png)
+
+### 7 47 36PM
+
+![RePlan screenshot: 16-7-47-36PM](assets/screenshots/16-7-47-36PM.png)
+
+### 7 47 55PM
+
+![RePlan screenshot: 17-7-47-55PM](assets/screenshots/17-7-47-55PM.png)
+
+### 7 48 41PM
+
+![RePlan screenshot: 18-7-48-41PM](assets/screenshots/18-7-48-41PM.png)
+
+</details>
+
 ## What works
 
 - Multiple courses, credit hours, unique topic outlines and separate exam dates.
