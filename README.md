@@ -35,7 +35,7 @@ Open `http://127.0.0.1:8765/replanv2.html`, then choose **Try the 3-course demo*
 
 Keep the HTML, CSS, `replanv2.js`, `replanv2-engine.js`, `replanv2-calendar.js`, `replanv2-pdf.js`, `replanv2-auth.js`, and `replan-auth.json` together.
 
-The web app includes the current course rotation, topic estimates, daily/weekly availability, completion tracking, Google-only sign-in, calendar synchronization, and **Download PDF** daily checklists. Desktop 2.1 shares these files, so it receives the same updates.
+The web app includes the current course rotation, topic estimates, daily/weekly availability, completion tracking, Google and email/password sign-in, calendar synchronization, and **Download PDF** daily checklists. Desktop 2.1 shares these files, so it receives the same updates.
 
 **Download PDF** exports the complete active roadmap as daily A4 checklist sections, including completion boxes, study time, notes and page numbers. Busy days continue onto additional pages. JSON/CSV tools are under **Plan backup and recovery** in Study roadmap. PDF is a printable checklist; JSON remains the format for restoring an editable plan.
 
@@ -132,7 +132,7 @@ The gallery below shows RePlan's planner dashboard, roadmap and course views, wo
 - Explicit unscheduled workload when remaining time cannot accommodate all topics.
 - Search, filters, progress, topic timelines, workload views and configurable local coaching.
 - Local autosave, full JSON backup/import, CSV plus metadata, printable PDF checklists and `.ics` calendar export.
-- Optional Google account sign-in and Google Calendar synchronization. Accounts do not upload or back up the plan.
+- Optional Google or email/password account sign-in and Google Calendar synchronization. Accounts do not upload or back up the plan.
 
 ## Scheduling contract
 
@@ -172,7 +172,7 @@ Desktop storage is a separate `.replanv2-desktop/` profile. Its stable localhost
 
 ## Mobile app v2_1
 
-Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides a **Download PDF daily checklist** button plus optional Google sign-in. JSON backup/import remains under **Plan backup and recovery** in Settings. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
+Use the latest mobile app, **RePlan v2_1**. Its Flutter source currently lives in `rplanv2_2/`; see [Flutter setup and supported features](rplanv2_2/README.md) for Android/iOS build instructions. It enforces daily capacity, supports explicit topic estimates and availability overrides, and provides a **Download PDF daily checklist** button plus optional Google and email/password sign-in. JSON backup/import remains under **Plan backup and recovery** in Settings. A failed restore pauses autosave and exposes the original data for recovery. JSON backups can be transferred between clients, with the precision and history differences described above.
 
 ## Checks
 

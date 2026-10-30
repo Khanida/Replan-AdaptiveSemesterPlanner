@@ -11,7 +11,7 @@
   const dot=course=>`<span style="color:color-mix(in srgb, ${esc(course?.color||'#ff8799')} 38%, var(--green))">●</span>`;
   let state=E.emptyState(), view='today', page=0, dailyPage=0, sortKey='Date',ascending=true,selected=new Set(), visible=[],editing=null;
   let toastTimer,lastDay=E.today(),syncing=false,contextIds=[];
-  let accountSession=null,googleSession=null,authBusy=false,authVersion=0;
+  let accountSession=null,googleSession=null,authBusy=false,authVersion=0,emailCreateMode=false;
   let storageAvailable=true,startupError='',originalSaved=null,recoveryExported=false;
   try {originalSaved=localStorage.getItem(KEY);if(originalSaved)state=E.validateState(JSON.parse(originalSaved));}
   catch(error){startupError='Could not restore browser storage. Your saved data has not been overwritten. Export the original saved data under Plan backup and recovery, then open a valid backup. Autosave is paused.';storageAvailable=false;}
@@ -320,13 +320,38 @@
     const account=accountSession?.profile;
     $('google-account').textContent=account ? (account.name||account.email||'Account') : 'Sign in';
     $('google-profile').hidden=!account;
-    $('google-profile').textContent=account ? `Signed in with Google as ${account.email||account.name||'your account'}.` : '';
+    const provider=accountSession?.provider==='email'?'email':'Google';
+    $('google-profile').textContent=account ? `Signed in with ${provider} as ${account.email||account.name||'your account'}.` : '';
     $('google-signout').hidden=!accountSession;
     $('google-sync').textContent='Add tasks to Google Calendar';
   }
   function openGoogleLogin(){
     $('google-login-error').textContent='';$('google-login-status').textContent='';
+    emailCreateMode=false;updateEmailMode();
     updateGoogleAccount();$('google-dialog').showModal();
+  }
+  function updateEmailMode(){
+    $('email-submit').textContent=emailCreateMode?'Create account':'Sign in with email';
+    $('login-password').autocomplete=emailCreateMode?'new-password':'current-password';
+    $('email-mode-toggle').textContent=emailCreateMode?'Already have an account? Sign in':'Need an account? Create one';
+  }
+  async function submitEmail(event){
+    event.preventDefault();
+    if(authBusy||syncing)return;
+    const formElement=event.currentTarget;
+    authBusy=true;const attempt=++authVersion;
+    $('google-login-error').textContent='';$('google-login-status').textContent=emailCreateMode?'Creating your account…':'Signing in…';
+    $('email-submit').disabled=true;$('google-signin').disabled=true;
+    try{
+      const form=new FormData(formElement);
+      const session=await window.ReplanAuth.signInEmail(form.get('email'),form.get('password'),emailCreateMode);
+      if(attempt!==authVersion)return;
+      if(session.confirmationRequired){emailCreateMode=false;updateEmailMode();$('login-password').value='';$('google-login-status').textContent='Account created. Check your email to confirm it, then sign in.';return;}
+      accountSession=session;googleSession=null;updateGoogleAccount();
+      $('google-login-status').textContent='Signed in. Your plan is still saved on this device.';
+      formElement.reset();
+    }catch(error){if(attempt===authVersion){$('google-login-status').textContent='';$('google-login-error').textContent=error.message;}}
+    finally{authBusy=false;$('email-submit').disabled=false;$('google-signin').disabled=false;}
   }
   async function signInProvider(provider){
     if(authBusy||syncing)return;
@@ -444,6 +469,9 @@
   });
   document.addEventListener('keydown',event=>{if(event.key==='Escape')$('row-menu').hidden=true;if((event.metaKey||event.ctrlKey)&&['s','o'].includes(event.key.toLowerCase())){event.preventDefault();event.key.toLowerCase()==='s'?safe(save)():$('open-file').click();}});
   $('google-signin').addEventListener('click',()=>signInProvider('google'));
+  $('email-login-form').addEventListener('submit',submitEmail);
+  $('email-mode-toggle').addEventListener('click',()=>{emailCreateMode=!emailCreateMode;$('google-login-error').textContent='';$('google-login-status').textContent='';updateEmailMode();});
+  updateEmailMode();
   $('google-signout').addEventListener('click',signOutGoogle);
   updateGoogleAccount();
   $('calendar-hour').innerHTML=Array.from({length:24},(_,hour)=>`<option value="${hour}">${String(hour).padStart(2,'0')}:00</option>`).join('');

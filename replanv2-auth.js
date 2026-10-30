@@ -1,4 +1,4 @@
-/* Optional Google OAuth. Public configuration only; tokens stay in memory. */
+/* Optional Google OAuth and email/password auth. Public config only. */
 (function () {
   'use strict';
   const params = new URLSearchParams(location.search);
@@ -31,8 +31,37 @@
       method: body ? 'POST' : 'GET', headers: {apikey: settings.key, 'Content-Type': 'application/json',
         ...(token ? {Authorization: 'Bearer ' + token} : {})}, body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(20000)});
-    if (!response.ok) throw Error('Sign-in could not finish. Please try again or continue as a guest.');
-    return response.json();
+    let data = {};
+    try { data = await response.json(); } catch { /* use the generic error below */ }
+    if (!response.ok) {
+      const code = data.code || data.error_code;
+      const messages = {
+        invalid_credentials: 'Email or password is incorrect.',
+        email_not_confirmed: 'Confirm your email address before signing in.',
+        user_already_exists: 'An account already exists for this email. Try signing in.',
+        weak_password: data.msg || 'Choose a stronger password.'
+      };
+      throw Error(messages[code] || data.msg || data.message || 'Sign-in could not finish. Please try again.');
+    }
+    return data;
+  }
+  async function signInEmail(email, password, createAccount = false) {
+    if (!['http:', 'https:'].includes(location.protocol) || !window.isSecureContext)
+      throw Error('Open RePlan on localhost or HTTPS to sign in.');
+    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password)
+      throw Error('Enter your email and password.');
+    const settings = await config();
+    const result = createAccount
+      ? await request(settings, '/signup', {email: email.trim(), password})
+      : await request(settings, '/token?grant_type=password', {email: email.trim(), password});
+    const resultUser=result.user || (createAccount && result.id ? result : null);
+    if (!result.access_token) {
+      if (resultUser) return {confirmationRequired: true, profile: {email: resultUser.email}};
+      throw Error('Sign-in did not return a session. Please try again.');
+    }
+    const user = resultUser || await request(settings, '/user', null, result.access_token);
+    if (!user.id) throw Error('Could not verify your account.');
+    return {provider: 'email', profile: {name: user.user_metadata?.full_name || user.user_metadata?.name, email: user.email}};
   }
   async function signIn(provider, calendar = false) {
     if (provider !== 'google' || (calendar && provider !== 'google')) throw Error('Use Google sign-in or continue as a guest.');
@@ -85,5 +114,5 @@
       if (!popup.closed) popup.close();
     }
   }
-  window.ReplanAuth = {signIn};
+  window.ReplanAuth = {signIn, signInEmail};
 })();

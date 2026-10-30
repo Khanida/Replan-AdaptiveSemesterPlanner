@@ -37,8 +37,12 @@ class _AccountDialog extends StatefulWidget {
 class _AccountDialogState extends State<_AccountDialog> {
   StreamSubscription<AuthState>? _subscription;
   Timer? _timeout;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _busy = false;
+  bool _createAccount = false;
   String? _error;
+  String? _status;
   @override
   void initState() {
     super.initState();
@@ -49,6 +53,7 @@ class _AccountDialogState extends State<_AccountDialog> {
         setState(() {
           _busy = false;
           _error = null;
+          _status = null;
         });
       },
       onError: (Object error) {
@@ -56,7 +61,9 @@ class _AccountDialogState extends State<_AccountDialog> {
         _timeout?.cancel();
         setState(() {
           _busy = false;
-          _error = 'Sign-in was cancelled or could not finish. Try again or continue as a guest.';
+          _error =
+              'Sign-in was cancelled or could not finish. Try again or continue as a guest.';
+          _status = null;
         });
       },
     );
@@ -66,6 +73,8 @@ class _AccountDialogState extends State<_AccountDialog> {
   void dispose() {
     _timeout?.cancel();
     _subscription?.cancel();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -82,6 +91,7 @@ class _AccountDialogState extends State<_AccountDialog> {
     setState(() {
       _busy = true;
       _error = null;
+      _status = 'Finish authorization in your browser, then return to RePlan.';
     });
     try {
       await PlannerAuth.ensureProviderEnabled(provider);
@@ -102,7 +112,9 @@ class _AccountDialogState extends State<_AccountDialog> {
         if (mounted)
           setState(() {
             _busy = false;
-            _error = 'Sign-in timed out. You can retry or continue as a guest.';
+            _error =
+                'Sign-in timed out. You can retry or continue as a guest.';
+            _status = null;
           });
       });
     } on AuthUnavailable catch (error) {
@@ -110,13 +122,84 @@ class _AccountDialogState extends State<_AccountDialog> {
         setState(() {
           _busy = false;
           _error = error.message;
+          _status = null;
         });
     } catch (_) {
       if (mounted)
         setState(() {
           _busy = false;
-          _error = 'Could not open or complete sign-in. Check your connection, try again, or continue as a guest.';
+          _error =
+              'Could not open or complete sign-in. Check your connection, try again, or continue as a guest.';
+          _status = null;
         });
+    }
+  }
+
+  Future<void> _submitEmail() async {
+    if (_busy) return;
+    final client = PlannerAuth.client;
+    if (client == null) {
+      setState(
+        () => _error =
+            PlannerAuth.setupError ??
+            'Sign-in is not configured. You can continue as a guest.',
+      );
+      return;
+    }
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Enter your email and password.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+      _status = _createAccount ? 'Creating your account…' : 'Signing in…';
+    });
+    try {
+      if (_createAccount) {
+        final response = await client.auth.signUp(
+          email: email,
+          password: password,
+        );
+        if (!mounted) return;
+        if (response.session == null) {
+          _passwordController.clear();
+          setState(() {
+            _createAccount = false;
+            _status =
+                'Account created. Check your email to confirm it, then sign in.';
+          });
+        } else {
+          setState(
+            () => _status = 'Signed in. Your plan is still saved on this device.',
+          );
+        }
+      } else {
+        await client.auth.signInWithPassword(email: email, password: password);
+        if (!mounted) return;
+        setState(
+          () => _status = 'Signed in. Your plan is still saved on this device.',
+        );
+      }
+    } on AuthException catch (error) {
+      if (mounted) {
+        setState(() {
+          _status = null;
+          _error = error.message;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _status = null;
+          _error =
+              'Could not complete email sign-in. Check your connection and try again.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -139,6 +222,7 @@ class _AccountDialogState extends State<_AccountDialog> {
   Widget build(BuildContext context) {
     final user = PlannerAuth.client?.auth.currentUser;
     return AlertDialog(
+      scrollable: true,
       title: Text(user == null ? 'Sign in to RePlan' : 'Your account'),
       content: SizedBox(
         width: 360,
@@ -162,14 +246,56 @@ class _AccountDialogState extends State<_AccountDialog> {
                 onPressed: _busy ? null : () => _signIn(OAuthProvider.google),
                 child: const Text('Continue with Google'),
               ),
-            ],
-            if (_busy)
-              const Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: Text(
-                  'Finish authorization in your browser, then return to RePlan.',
+              const SizedBox(height: 12),
+              const Divider(),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text('Or use email'),
                 ),
               ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                enabled: !_busy,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                autofillHints: _createAccount
+                    ? const [AutofillHints.newPassword]
+                    : const [AutofillHints.password],
+                enabled: !_busy,
+                decoration: const InputDecoration(labelText: 'Password'),
+                onSubmitted: _busy ? null : (_) => _submitEmail(),
+              ),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: _busy ? null : _submitEmail,
+                child: Text(
+                  _createAccount ? 'Create account' : 'Sign in with email',
+                ),
+              ),
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () => setState(() {
+                        _createAccount = !_createAccount;
+                        _error = null;
+                        _status = null;
+                      }),
+                child: Text(
+                  _createAccount
+                      ? 'Already have an account? Sign in'
+                      : 'Need an account? Create one',
+                ),
+              ),
+            ],
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -177,6 +303,11 @@ class _AccountDialogState extends State<_AccountDialog> {
                   _error!,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
+              ),
+            if (_status != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(_status!),
               ),
             const SizedBox(height: 16),
             const Text(

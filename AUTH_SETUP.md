@@ -1,17 +1,18 @@
-# Optional Google sign-in
+# Optional account sign-in
 
 The app is configured for Supabase project `zhdgciafkwqbxwtvnbkj`, and its
-public auth settings confirm Google is enabled. Complete the redirect allowlist
-below and verify an interactive login before release.
-Users never enter
-API keys or OAuth client IDs. They choose Google or Continue as guest.
+public auth settings confirm Google is enabled. Enable email/password sign-in in
+Supabase Authentication settings, complete the redirect allowlist below, and
+verify interactive login before release. Users never enter API keys or OAuth
+client IDs. They can use Google, email/password, or continue as a guest.
 
 ## Configure the project once
 
 1. Create a Supabase project. In **Authentication → Providers**, enable Google
    following the official guides below. Configure the provider with
    the Supabase callback URL shown in its dashboard. Enable Google Calendar API
-   in the Google Cloud project used by your Google OAuth web client.
+   in the Google Cloud project used by your Google OAuth web client. Keep the
+   Email provider enabled to allow password sign-in and account creation.
 2. In `replan-auth.json`, set `supabaseUrl` to the project's HTTPS origin, and
    `supabasePublishableKey` to its public `sb_publishable_…` key (the legacy
    `anon` key also works). These two values are public app configuration. Never
@@ -37,23 +38,26 @@ For browser use, serve this directory on localhost or HTTPS. Allow the sign-in
 popup. Opening the HTML directly with `file://` supports the planner and ICS
 export, but not sign-in.
 
-Verify Google sign-in, denial/cancellation, sign-out, and a Google Calendar sync
-using test accounts after configuring the real project. Signing in alone asks
-for identity access; Calendar requests its permission when adding tasks.
+Verify Google sign-in, email/password sign-in, account creation (including the
+email-confirmation flow if enabled), denial/cancellation, sign-out, and a Google
+Calendar sync using test accounts after configuring the real project. Signing
+in alone asks for identity access; Calendar requests its permission when adding
+tasks.
 
 ## Session behavior
 
-The desktop app uses a loopback callback and PKCE instead of embedded provider
-login pages. Browser callbacks require the initiating popup, matching origin,
-and a random attempt identifier. Both exchange the code with Supabase and verify
-the account through its authenticated user endpoint before showing signed-in
-state. Tokens are not written to the planner's autosave or a token file. Restart
-or reload requires sign-in again. Plans continue saving locally; account sign-in
-does not implement cloud plan sync.
+Google sign-in uses a loopback callback and PKCE on desktop instead of embedded
+provider login pages. Browser callbacks require the initiating popup, matching
+origin, and a random attempt identifier. Email/password sign-in uses Supabase's
+HTTPS Auth API; new accounts may need email confirmation, depending on project
+settings. The app keeps only the signed-in profile in its UI state. Auth tokens
+are not written to planner autosave or a token file, so restart or reload
+requires sign-in again. Plans continue saving locally; account sign-in does not
+implement cloud plan sync.
 
 ## Flutter mobile and web authorization
 
-The Flutter client uses the same Supabase project through its bundled public configuration at `rplanv2_2/assets/replan-auth.json`. Keep this file aligned with the root `replan-auth.json` when changing projects. No provider secrets belong in either file.
+The Flutter client uses the same Supabase project through its bundled public configuration at `rplanv2_2/assets/replan-auth.json`. Keep this file aligned with the root `replan-auth.json` when changing projects. No provider secrets belong in either file. Email/password sign-in and account creation use the Supabase Flutter SDK; new accounts may require email confirmation based on the project's Auth settings.
 
 Before testing live login, add these entries in **Supabase → Authentication → URL Configuration → Redirect URLs**:
 
@@ -63,9 +67,9 @@ Before testing live login, add these entries in **Supabase → Authentication �
 
 Android intent filters, iOS/macOS URL schemes, network permissions and PKCE callback filtering are included in the source. The default Flutter deep-link handler is disabled so Supabase's app-links handler can process authorization results. The app restricts callbacks to its expected scheme/host/path or web origin/path, and only accepts authorization codes/errors. The SDK exchanges codes using PKCE. Session tokens remain in memory; the temporary PKCE verifier uses the SDK's storage so a browser redirect or cold start can finish the flow. Sign-out clears the local account session without removing study plans.
 
-The project's public settings were checked on October 23, 2026: **Google enabled**. Google is the only supported sign-in provider. The app checks provider availability before opening authorization and explains unavailable providers. Provider dashboard configuration and the redirect allowlist cannot be changed by editing Flutter files alone.
+The project's public settings were checked on October 23, 2026: **Google enabled**. Google is the supported OAuth provider; email/password uses Supabase's built-in Email provider. The app checks Google availability before opening authorization and explains when it is unavailable. Provider dashboard configuration and the redirect allowlist cannot be changed by editing Flutter files alone.
 
-Verify successful Google login, denied consent, closed browser/timeouts, wrong callback origin/path, guest fallback, sign-out and an app cold-start callback. Native testing requires Android SDK or Xcode and an actual emulator/device. These are account sign-ins only; Flutter does not request Google Calendar permission or implement cloud plan storage.
+Verify successful Google and email/password login, account confirmation when enabled, denied consent, closed browser/timeouts, wrong callback origin/path, guest fallback, sign-out and an app cold-start callback. Native testing requires Android SDK or Xcode and an actual emulator/device. These are account sign-ins only; Flutter does not request Google Calendar permission or implement cloud plan storage.
 
 ## References
 
