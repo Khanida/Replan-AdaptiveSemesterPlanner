@@ -61,8 +61,7 @@ class _AccountDialogState extends State<_AccountDialog> {
         _timeout?.cancel();
         setState(() {
           _busy = false;
-          _error =
-              'Sign-in was cancelled or could not finish. Try again or continue as a guest.';
+          _error = 'Sign-in was cancelled or could not finish. Try again or continue as a guest.';
           _status = null;
         });
       },
@@ -112,8 +111,7 @@ class _AccountDialogState extends State<_AccountDialog> {
         if (mounted)
           setState(() {
             _busy = false;
-            _error =
-                'Sign-in timed out. You can retry or continue as a guest.';
+            _error = 'Sign-in timed out. You can retry or continue as a guest.';
             _status = null;
           });
       });
@@ -128,8 +126,7 @@ class _AccountDialogState extends State<_AccountDialog> {
       if (mounted)
         setState(() {
           _busy = false;
-          _error =
-              'Could not open or complete sign-in. Check your connection, try again, or continue as a guest.';
+          _error = 'Could not open or complete sign-in. Check your connection, try again, or continue as a guest.';
           _status = null;
         });
     }
@@ -168,12 +165,12 @@ class _AccountDialogState extends State<_AccountDialog> {
           _passwordController.clear();
           setState(() {
             _createAccount = false;
-            _status =
-                'Account created. Check your email to confirm it, then sign in.';
+            _status = 'Account created. Check your email to confirm it, then sign in.';
           });
         } else {
           setState(
-            () => _status = 'Signed in. Your plan is still saved on this device.',
+            () =>
+                _status = 'Signed in. Your plan is still saved on this device.',
           );
         }
       } else {
@@ -194,8 +191,7 @@ class _AccountDialogState extends State<_AccountDialog> {
       if (mounted) {
         setState(() {
           _status = null;
-          _error =
-              'Could not complete email sign-in. Check your connection and try again.';
+          _error = 'Could not complete email sign-in. Check your connection and try again.';
         });
       }
     } finally {
